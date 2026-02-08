@@ -1,11 +1,10 @@
 idea:
   title: Where is Washing Machine stored in LLMs?
   domain: nlp
-  hypothesis: 'In large language models, specific compound concepts such as ''washing
-    machine'' may not be represented by distinct or orthogonal directions in the residual
-    stream; instead, the model may store more basic concepts like ''washing'', with
-    the presence of ''machine'' increasing the likelihood of the compound concept
-    being formed.
+  hypothesis: 'In large language models, individual concepts such as ''washing machine''
+    may not be represented by distinct or orthogonal directions in the residual stream;
+    instead, the model may store more atomic concepts like ''washing'', with the presence
+    of ''machine'' increasing the likelihood of the composite concept.
 
     '
   background:
@@ -16,8 +15,8 @@ idea:
   metadata:
     source: IdeaHub
     source_url: https://hypogenic.ai/ideahub/idea/JwFgKYiEHGDlCtEAKbp9
-    idea_id: where_is_washing_machine_store_20260207_183600_c31e0690
-    created_at: '2026-02-07T18:36:00.251028'
+    idea_id: where_is_washing_machine_store_20260207_214250_c31e0690
+    created_at: '2026-02-07T21:42:50.985228'
     status: submitted
     github_repo_name: llm-washing-machine-codex
     github_repo_url: https://github.com/Hypogenic-AI/llm-washing-machine-codex
