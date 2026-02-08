@@ -1,0 +1,14 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\para{Problem formulation.} We ask whether the compound \compound corresponds to a distinct direction in the \resid or is better explained as a composition of constituent features. We evaluate this using feature overlap, causal patching, and compositional probes on the same model and contexts.
+
+\para{Data and contexts.} We use \wikitext raw (train 36{,}718; validation 3{,}760; test 4{,}358 lines). After filtering empty lines (train 12{,}951; validation 1{,}299; test 1{,}467) we search for three context sets: compound (lines containing ``washing machine''), \washing-only, and \machine-only. \wikitext contains no literal \compound strings, so we add a small set of synthetic compound prompts to ensure controlled comparisons. We cap contexts at 200 per set.
+
+\para{Model and \sae.} We run \gpttwo in TransformerLens and collect layer-6 \resid activations at resid\_post\_mlp. We encode activations using a pretrained OpenAI \sae (v5 32k) trained on this location. We use top-$k$ analysis with $k=50$.
+
+\para{Metrics.} We compute (i) top-$k$ Jaccard overlap between feature sets for compound and constituent contexts, (ii) cosine similarity between mean \sae latent vectors, (iii) causal patching effects measured as $\Delta$logit for ``machine'' when patching compound activations into ``washing process'' templates, and (iv) compositionality probe performance using ridge regression to predict compound embeddings from constituent embeddings (MSE and cosine).
+
+\para{Baselines.} For the probe, we compare against a head-noun baseline that predicts the compound embedding from the \machine embedding alone (``w2'' baseline).
+
+\para{Reproducibility.} We run a single deterministic pipeline with seed 42 on an NVIDIA RTX 3090 (24GB). Software versions: PyTorch 2.10.0+cu128, TransformerLens 2.15.4, Transformers 4.57.6, Datasets 4.5.0, scikit-learn 1.8.0.

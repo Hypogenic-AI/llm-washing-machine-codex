@@ -1,0 +1,54 @@
+\begin{thebibliography}{8}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Elhage et~al.(2022)Elhage, Hume, Olsson, Schaeffer, Henighan, and
+  Olah]{elhage2022superposition}
+Nelson Elhage, Tristan Hume, Catherine Olsson, Brandon Schaeffer, Tom Henighan,
+  and Chris Olah.
+\newblock Toy models of superposition.
+\newblock \emph{arXiv preprint arXiv:2209.10652}, 2022.
+
+\bibitem[Gao et~al.(2024)]{gao2024sae}
+Leo Gao et~al.
+\newblock Scaling and evaluating sparse autoencoders.
+\newblock \emph{arXiv preprint arXiv:2406.04093}, 2024.
+
+\bibitem[Heap et~al.(2025)]{heap2025metrics}
+Thomas Heap et~al.
+\newblock Automated interpretability metrics do not distinguish trained and
+  random transformers.
+\newblock \emph{arXiv preprint arXiv:2501.17727}, 2025.
+
+\bibitem[Lawson et~al.(2025)]{lawson2025mlsae}
+Tim Lawson et~al.
+\newblock Residual stream analysis with multi-layer sparse autoencoders.
+\newblock \emph{arXiv preprint arXiv:2409.04185}, 2025.
+
+\bibitem[Leask et~al.(2025)]{leask2025sae}
+Patrick Leask et~al.
+\newblock Sparse autoencoders do not find canonical units of analysis.
+\newblock \emph{arXiv preprint arXiv:2502.04878}, 2025.
+
+\bibitem[Liu and Neubig(2022)]{liu2022groundup}
+Emmy Liu and Graham Neubig.
+\newblock Are representations built from the ground up? an empirical
+  examination of local composition in language models.
+\newblock \emph{arXiv preprint arXiv:2210.03575}, 2022.
+
+\bibitem[Park et~al.(2024)Park, Choe, and Veitch]{park2024linear}
+Kiho Park, Yo~Joong Choe, and Victor Veitch.
+\newblock The linear representation hypothesis and the geometry of large
+  language models.
+\newblock \emph{arXiv preprint arXiv:2311.03658}, 2024.
+
+\bibitem[Zhang and Nanda(2023)]{zhang2023patching}
+Fred Zhang and Neel Nanda.
+\newblock Towards best practices of activation patching in language models: A
+  systematic survey.
+\newblock \emph{arXiv preprint arXiv:2309.16042}, 2023.
+
+\end{thebibliography}

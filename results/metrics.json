@@ -1,0 +1,42 @@
+{
+  "config": {
+    "seed": 42,
+    "model_name": "gpt2",
+    "sae_layer": 6,
+    "sae_location": "resid_post_mlp",
+    "top_k": 50,
+    "max_contexts": 200,
+    "device": "cuda",
+    "results_dir": "results",
+    "plots_dir": "results/plots"
+  },
+  "timestamp": "2026-02-07T18:55:14.618119",
+  "counts": {
+    "compound_contexts": 105,
+    "washing_only_contexts": 178,
+    "machine_only_contexts": 200,
+    "compound_latent_samples": 105,
+    "washing_latent_samples": 10,
+    "machine_latent_samples": 164
+  },
+  "overlap": {
+    "compound_washing_jaccard": 0.13636363636363635,
+    "compound_machine_jaccard": 0.1111111111111111,
+    "compound_union_jaccard": 0.12903225806451613,
+    "compound_unique_fraction": 0.68
+  },
+  "cosine": {
+    "compound_washing": 0.5775308012962341,
+    "compound_machine": 0.040578462183475494
+  },
+  "causal_patching": {
+    "mean_logit_delta": -0.018598461151123048,
+    "std_logit_delta": 0.1088594622533925,
+    "n": 5
+  },
+  "compositionality_probe": {
+    "ridge_mse": 5.190074443817139,
+    "baseline_w2_mse": 12.488150596618652,
+    "ridge_mean_cosine": 0.9956023558974266
+  }
+}

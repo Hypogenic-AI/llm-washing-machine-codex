@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "stages": {
+    "resource_finder": {
+      "success": true,
+      "completion_marker": "/data/hypogenicai/workspaces/llm-washing-machine-codex/.resource_finder_complete",
+      "outputs": {
+        "literature_review": "/data/hypogenicai/workspaces/llm-washing-machine-codex/literature_review.md",
+        "resources_catalog": "/data/hypogenicai/workspaces/llm-washing-machine-codex/resources.md",
+        "papers_dir": "/data/hypogenicai/workspaces/llm-washing-machine-codex/papers",
+        "datasets_dir": "/data/hypogenicai/workspaces/llm-washing-machine-codex/datasets",
+        "code_dir": "/data/hypogenicai/workspaces/llm-washing-machine-codex/code"
+      },
+      "log_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/resource_finder_codex.log",
+      "transcript_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/resource_finder_codex_transcript.jsonl",
+      "elapsed_time": 585.8569898605347
+    },
+    "experiment_runner": {
+      "success": true,
+      "return_code": 0,
+      "elapsed_time": 738.7851991653442,
+      "log_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/execution_codex.log",
+      "transcript_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/execution_codex_transcript.jsonl"
+    }
+  },
+  "work_dir": "/data/hypogenicai/workspaces/llm-washing-machine-codex"
+}

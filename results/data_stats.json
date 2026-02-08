@@ -1,0 +1,26 @@
+{
+  "train": {
+    "total": 36718,
+    "missing_or_empty": 12951,
+    "mean_len": 296.6662127566861,
+    "std_len": 413.4041548373278,
+    "min_len": 0,
+    "max_len": 3863
+  },
+  "validation": {
+    "total": 3760,
+    "missing_or_empty": 1299,
+    "mean_len": 303.76329787234044,
+    "std_len": 409.26918368817314,
+    "min_len": 0,
+    "max_len": 2245
+  },
+  "test": {
+    "total": 4358,
+    "missing_or_empty": 1467,
+    "mean_len": 295.00275355667736,
+    "std_len": 410.3228220044277,
+    "min_len": 0,
+    "max_len": 2587
+  }
+}

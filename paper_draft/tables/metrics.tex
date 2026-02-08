@@ -1,0 +1,23 @@
+\begin{table}[t]
+    \centering
+    \resizebox{0.95\textwidth}{!}{%
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Compound--washing Jaccard (top-50) & 0.136 \\
+        Compound--machine Jaccard (top-50) & 0.111 \\
+        Compound--union Jaccard (top-50) & 0.129 \\
+        Compound unique fraction (top-50) & 0.68 \\
+        Cosine(compound, washing) & 0.578 \\
+        Cosine(compound, machine) & 0.041 \\
+        Causal patching $\Delta$logit & $-0.019$ {\scriptsize $\pm$ 0.109} \\
+        Probe MSE (ridge) & 5.19 \\
+        Probe MSE (w2 baseline) & 12.49 \\
+        Probe cosine (ridge) & 0.996 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{Main metrics for compound vs. constituent analysis. Causal patching reports mean $\pm$ standard deviation over $n=5$ template pairs. Lower MSE and higher cosine are better for the probe.}
+    \label{tab:main_metrics}
+\end{table}

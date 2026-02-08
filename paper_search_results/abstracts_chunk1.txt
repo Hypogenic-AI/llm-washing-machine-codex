@@ -1,0 +1,1658 @@
+====================================================================================================
+2209.10652_toy_models_of_superposition_chunk_001.pdf
+====================================================================================================
+Transformer Circuits Thread
+AUTHORS
+Nelson Elhage,Tristan Hume,Catherine Olsson,Nicholas Schiefer,Tom Henighan,Shauna Kravec,Zac Hatfield-Dodds,Robert Lasenby,Dawn Drain,Carol Chen,Roger Grosse,Sam McCandlish,Jared Kaplan,Dario Amodei,Martin Wattenberg,Christopher Olah
+AFFILIATIONS
+Anthropic,Harvard
+PUBLISHED
+Sept 14, 2022
+* Core Research Contributor;‡ Correspondence to colah@anthropic.com;Author contributions statement below.
+Toy Models of Superposition
+∗ ∗ ∗ ∗
+∗ ‡
+Abstract: Neural networks often pack many unrelated concepts into a single neuron – a puzzlingphenomenon known as 'polysemanticity' which makes interpretability much more challenging. Thispaper provides a toy model where polysemanticity can be fully understood, arising as a result ofmodels storing additional sparse features in "superposition." We demonstrate the existence of aphase change, a surprising connection to the geometry of uniform polytopes, and evidence of a linkto adversarial examples. We also discuss potential implications for mechanistic interpretability.
+We recommend reading this paper as an HTML article.
+It would be very convenient if the individual neurons of artificial neural networks corresponded tocleanly interpretable features of the input. For example, in an “ideal” ImageNet classifier, eachneuron would fire only in the presence of a specific visual feature, such as the color red, a left-facing curve, or a dog snout. Empirically, in models we have studied, some of the neurons do cleanlymap to features. But it isn't always the case that features correspond so cleanly to neurons,especially in large language models where it actually seems rare for neurons to correspond to cleanfeatures. This brings up many questions. Why is it that neurons sometimes align with features andsometimes don't? Why do some models and tasks have many of these clean neurons, while they'revanishingly rare in others?
+In this paper, we use toy models — small ReLU networks trained on synthetic data with sparse inputfeatures — to investigate how and when models represent more features than they havedimensions. We call this phenomenon superposition. When features are sparse, superpositionallows compression beyond what a linear model would do, at the cost of "interference" that requiresnonlinear filtering.
+Consider a toy model where we train an embedding of five features of varying importancein twodimensions, add a ReLU afterwards for filtering, and vary the sparsity of the features. With densefeatures, the model learns to represent an orthogonal basis of the most important two features(similar to what Principal Component Analysis might give us), and the other three features are notrepresented. But if we make the features sparse, this changes:
+1
+This figure and a few others can be reproduced using the toy model framework Colab notebook in our Github repo
+Not only can models store additional features in superposition by tolerating some interference, butwe'll show that, at least in certain limited cases, models can perform computation while insuperposition. (In particular, we'll show that models can put simple circuits computing the absolutevalue function in superposition.) This leads us to hypothesize that theneural networks we observein practice are in some sense noisily simulating larger, highly sparse networks. In other words, it'spossible that models we train can be thought of as doing “the same thing as” an imagined much-larger model, representing the exact same features but with no interference.
+Feature superposition isn't a novel idea. A number of previous interpretability papers havespeculated about it , and it's very closely related to the long-studied topic of compressedsensing in mathematics , as well as the ideas of distributed, dense, and population codes inneuroscience  and deep learning . What, then, is the contribution of this paper?
+For interpretability researchers, our main contribution is providing a direct demonstration thatsuperposition occurs in artificial neural networks given a relatively natural setup, suggesting thismay also occur in practice. We offer a theory of when and why this occurs, revealing a phasediagram for superposition. We also discover that, at least in our toy model, superposition exhibitscomplex geometric structure.
+But our results may also be of broader interest. We find preliminary evidence that superposition maybe linked to adversarial examples and grokking, and might also suggest a theory for theperformance of mixture of experts models. More broadly, the toy model we investigate hasunexpectedly rich structure, exhibiting phase changes, a geometric structure based on uniformpolytopes, "energy level"-like jumps during training, and a phenomenon which is qualitatively similarto the fractional quantum Hall effect in physics. We originally investigated the subject to gainunderstanding of cleanly-interpretable neurons in larger models, but we've found these toy modelsto be surprisingly interesting in their own right.
+[1, 2]
+[3]
+[4] [5]
+KEY RESULTS FROM OUR TOY MODELS
+In our toy models, we are able to demonstrate that:
+Superposition is a real, observed phenomenon.
+Both monosemantic and polysemantic neurons can form.
+At least some kinds of computation can be performed in superposition.
+Whether features are stored in superposition is governed by a phase change.
+Superposition organizes features into geometric structures such as digons, triangles,pentagons, and tetrahedrons.
+Our toy models are simple ReLU networks, so it seems fair to say that neural networks exhibit theseproperties in at least some regimes, but it's very unclear what to generalize to real networks.
+Definitions and Motivation: Features,Directions, and Superposition
+In our work, we often think of neural networks as having features of the input representedas directions in activation space. This isn't a trivial claim. It isn't obvious what kind of structure weshould expect neural network representations to have. When we say something like "wordembeddings have a gender direction" or "vision models have curve detector neurons", one isimplicitly making strong claims about the structure of network representations.
+Despite this, we believe this kind of "linear representation hypothesis" is supported both bysignificant empirical findings and theoretical arguments. One might think of this as two separateproperties, which we'll explore in more detail shortly:
+Decomposability: Network representations can be described in terms of independentlyunderstandable features.
+Linearity: Features are represented by direction.
+If we hope to reverse engineer neural networks, we need a property like decomposability.Decomposability is what allows us to reason about the model without fitting the whole thing in ourheads! But it's not enough for things to be decomposable: we need to be able to access thedecomposition somehow. In order to do this, we need to identify the individual features within arepresentation. In a linear representation, this corresponds to determining which directions inactivation space correspond to which independent features of the input.
+Sometimes, identifying feature directions is very easy because features seem to correspond toneurons. For example, many neurons in the early layers of InceptionV1 clearly correspond tofeatures (e.g. curve detector neurons ). Why is it that we sometimes get this extremely helpfulproperty, but in other cases don't? We hypothesize that there are really two countervailing forcesdriving this:
+[6]
+Privileged Basis: Only some representations have a privileged basis which encouragesfeatures to align with basis directions (i.e. to correspond to neurons).
+Superposition: Linear representations can represent more features than dimensions, using astrategy we call superposition. This can be seen as neural networks simulating largernetworks. This pushes features away from corresponding to neurons.
+Superposition has been hypothesized in previous work . However, we're not aware of featuresuperposition having been unambiguously demonstrated to occur in neural networks before (demonstrates a closely related phenomenon of model superposition). The goal of this paper is tochange that, demonstrating superposition and exploring how it interacts with privileged bases. Ifsuperposition occurs in networks, it deeply influences what approaches to interpretability researchmake sense, so unambiguous demonstration seems important.
+[1, 2]
+[7]
+
+====================================================================================================
+2210.03575_are_representations_built_from_the_ground_up_chunk_001.pdf
+====================================================================================================
+Are Representations Built from the Ground Up?
+An Empirical Examination of Local Composition in Language Models
+Emmy Liu and Graham Neubig
+Language Technologies Institute
+Carnegie Mellon University
+{mengyan3, gneubig}@cs.cmu.edu
+Abstract
+Compositionality, the phenomenon where the
+meaning of a phrase can be derived from
+its constituent parts, is a hallmark of human
+language. At the same time, many phrases
+are non-compositional, carrying a meaning be-
+yond that of each part in isolation. Repre-
+senting both of these types of phrases is crit-
+ical for language understanding, but it is an
+open question whether modern language mod-
+els (LMs) learn to do so; in this work we ex-
+amine this question. We ﬁrst formulate a prob-
+lem of predicting the LM-internal representa-
+tions of longer phrases given those of their
+constituents. We ﬁnd that the representation
+of a parent phrase can be predicted with some
+accuracy given an afﬁne transformation of its
+children. While we would expect the predic-
+tive accuracy to correlate with human judg-
+ments of semantic compositionality, we ﬁnd
+this is largely not the case, indicating that LMs
+may not accurately distinguish between com-
+positional and non-compositional phrases. We
+perform a variety of analyses, shedding light
+on when different varieties of LMs do and
+do not generate compositional representations,
+and discuss implications for future modeling
+work.1
+1 Introduction
+Compositionality is argued to be a hallmark of lin-
+guistic generalization (Szabó, 2020). However,
+some phrases are non-compositional, and can-
+not be reconstructed from individual constituents
+(Dankers et al., 2022a). Intuitively, a phrase like
+"I own cats and dogs" is locally compositional,
+whereas "It’s raining cats and dogs" is not. There-
+fore, any representation of language must be easily
+composable, but it must also correctly handle cases
+that deviate from compositional rules.
+Both lack (Hupkes et al., 2020; Lake and Baroni,
+2017) and excess (Dankers et al., 2022b) of compo-
+1Code and data available at https://github.com/
+nightingal3/lm-compositionality
+X
+A B
+[CLS] the dog sits on the sofa [SEP]
+[CLS] the dog [SEP] [CLS] sits on the sofa [SEP]
+Figure 1: An illustration of the local composition pre-
+diction problem with [CLS] representations.
+sitionality have been cited as common sources of
+errors in NLP models, indicating that models may
+handle phrase composition in an unexpected way.
+In general form, the compositionality principle
+is simply “the meaning of an expression is a func-
+tion of the meanings of its parts and of the way
+they are syntactically combined” (Pelletier, 1994).
+However, this deﬁnition is underspeciﬁed (Partee,
+1984). Recent efforts to evaluate the compositional
+abilities of neural networks have resulted in several
+testable deﬁnitions of compositionality (Hupkes
+et al., 2020).
+Previous work on compositionality in natural lan-
+guage focuses largely on the deﬁnition ofsubstitu-
+tivity, by focusing on changes to the constituents
+of a complex phrase and how they change its repre-
+sentation (Dankers et al., 2022a; Garcia et al., 2021;
+Yu and Ettinger, 2020). The deﬁnition we examine
+is localism: whether or not the representation of
+a complex phrase is derivable only from its local
+structure and the representations of its immediate
+“children” (Hupkes et al., 2020). A similar con-
+cept has been proposed separately to measure the
+compositionality of learned representations, which
+we use in this work (Andreas, 2019). We focus
+on localism because it is a more direct deﬁnition
+and does not rely on the collection of contrastive
+pairs of phrases. This allows us to examine a wider
+range of phrases of different types and lengths.
+arXiv:2210.03575v2  [cs.CL]  22 Oct 2022
+In this paper, we ask whether reasonable compo-
+sitional probes can predict an LM’s representation
+of a phrase from its children in a syntax tree, and if
+so, which kinds of phrase are more or less compo-
+sitional. We also ask whether this corresponds to
+human judgements of compositionality.
+We ﬁrst establish a method to examine local
+compositionality on phrases through probes that
+try to predict the representation of a parent given
+its children (section 2). We create two English-
+language datasets upon which to experiment: a
+large-scale dataset of 823K phrases mined from
+the Penn Treebank, and a new dataset of idioms
+and paired non-idiomatic phrases for which we
+elicit human compositionality judgements, which
+we call the Compositionality of Human-annotated
+Idiomatic Phrases dataset (CHIP) (section 3).
+For multiple models and phrase types, we ﬁnd
+that phrase embeddings across models and repre-
+sentation types have a fairly predictable afﬁne com-
+positional structure based on embeddings of their
+constituents (section 4). We ﬁnd that there are
+signiﬁcant differences in compositionality across
+phrase types, and analyze these trends in detail,
+contributing to understanding how LMs represent
+phrases (section 5). Interestingly, we ﬁnd that hu-
+man judgments do not generally align well with
+the compositionality level of model representations
+(section 6). This implies there is still work to be
+done at the language modelling level to capture a
+proper level of compositionality in representations.
+2 Methods and Experimental Details
+2.1 Tree Reconstruction Error
+We follow Andreas (2019) in deﬁning deviance
+from compositionality as tree reconstruction error.
+Consider a phrasex = [a][b], wherea andb can be
+any length> 0. Assume we always have some way
+of knowing how x should be divided into a and
+b. Assume we also have some way of producing
+representations forx,a, andb, which we represent
+as a function r. Given representations r(x),r(a)
+andr(b), we wish to ﬁnd the function which most
+closely approximates howr(x) is constructed from
+r(a) andr(b).
+ˆf = arg min
+f ∈F
+1
+|X|
+∑
+x∈X
+δx,ab (1)
+δx,ab =d(r(x),f (r(a),r (b)) (2)
+WhereX is the set of possible phrases in the
+language that can be decomposed into two parts,
+F is the set of functions under consideration, and
+d is a distance function. An example scenario is
+depicted in Figure 1.
+Ford, we use cosine distance as this is the most
+common function used to compare semantic vec-
+tors. The division ofx intoa andb is speciﬁed by
+syntactic structure (Chomsky, 1959). Namely, we
+use a phrase’s annotated constituency structure and
+convert its constituency tree to a binary tree with
+the right-factored Chomsky Normal Form conver-
+sion included in NLTK (Bird and Loper, 2004).
+2.2 Language Models
+We study representations produced by a variety
+of widely used language models, speciﬁcally the
+base-(uncased) variants of Transformer-based
+models: BERT, RoBERTa, DeBERTa, and GPT-
+2 (He et al., 2021; Liu et al., 2019; Devlin et al.,
+2019; Radford et al., 2019).
+2.2.1 Representation extraction
+Let [x0,...,x N ] be a sequence of N + 1 input to-
+kens, wherex0 is the [CLS] token if applicable, and
+xN is the end token if applicable. Let [h(i)
+0 ,...,h (i)
+N ]
+be the embeddings of the input tokens after thei-th
+layer.
+For models with the [CLS] beginning of se-
+quence token (BERT, RoBERTa, and DeBERTa),
+we extracted the embedding of the [CLS] token
+from the last layer, which we refer to as the CLS
+representation. For GPT-2, we extracted the last
+token, which serves a similar purpose. This corre-
+sponds toh(12)
+0 andh(12)
+N respectively.
+Alternately, we also averaged all embeddings
+from the last layer, including special tokens. We
+refer to this as the A VGrepresentation.
+1
+N + 1
+N +1∑
+i=0
+h(12)
+i (3)
+2.3 Approximating a Composition Function
+To use this deﬁnition, we need a composition func-
+tion ˆf. We examine choices detailed in this section.
+For parameterized probes, we follow the prob-
+ing literature in training several probes to predict a
+property of the phrase given a representation of the
+phrase. However, in this case, we are not predict-
+ing a categorical attribute such as part of speech.
+Instead, the probes that we use aim to predict the
+parent representationr(x) based on the child rep-
+resentationsr(a) andr(b). We call this an approxi-
+mative probe to distinguish it from the usual use of
+the word probe.
+2.3.1 Arithmetic Probes
+In the simplest probes, the phrase representation
+r(x) is computed by a single arithmetic operation
+on r(a) and r(b). We consider three arithmetic
+probes:2
+ADD(r(a),r (b)) = r(a) +r(b) (4)
+W1(r(a),r (b)) = r(a) (5)
+W2(r(a),r (b) = r(b) (6)
+2.3.2 Learned Probes
+We consider three types of learned probes. The
+linear probe expressesr(x) as a linear combination
+ofr(a) andr(b). The afﬁne probe adds a bias term.
+The MLP probe is a simple feedforward neural
+network with 3 layers, using the ReLU activation.
+LIN(r(a),r (b)) = α1r(a) +α2r(b) (7)
+AFF(r(a),r(b)) =α1r(a) +α2r(b) +β (8)
+MLP(r(a),r (b)) = W3h2 (9)
+Where
+h1 =σ(W1[r(a);r(b)])
+h2 =σ(W2h1),
+W1 is (300× 2), W2 is (768× 300), and W3 is
+(1× 768). We do not claim that this is the best
+MLP possible, but use it as a simple architecture to
+contrast with the linear models.
+3 Data and Compositionality Judgments
+3.1 Treebank
+To collect a large set of phrases with syntactic
+structure annotations, we collected all unique sub-
+phrases (≥ 2 words) from WSJ and Brown sections
+of the Penn Treebank (v3) (Marcus et al., 1993). 3
+The ﬁnal dataset consists of823K phrases after
+excluding null values and duplicates. We collected
+2Initially, we considered the elementwise product
+PROD(r(a),r(b)) = r(a)⊙r(b), but found that it was an
+extremely poor approximation.
+3We converted the trees to Chomsky Normal Form with
+right-branching using NLTK (Bird and Loper, 2004). We note
+that not all subtrees are syntactically meaningful. However,
+we used this conversion to standardize the number of children
+and formatting. We exclude phrases with a null value for the
+left or right branch (Bies et al., 1995).
+the length of the left child in words, the length of
+the right child in words, and the tree’s production
+rule, which we refer to as tree type. There were
+50260 tree types in total, but many of these are
+unique. Examples and phrase length distribution
+can be found in Appendix A, and Appendix B.
+3.2 English Idioms and Matched Phrase Set
+Previous datasets center around notable bigrams,
+some of which are compositional and some of
+which are non-compositional (Ramisch et al.,
+2016b; Reddy et al., 2011). However, there is a
+positive correlation between bigram frequency and
+human compositionality scores in these datasets,
+which means that it is unclear whether models are
+capturing compositionality or merely frequency ef-
+fects if they correlate well with the human scores.
+Because models are likely more sensitive to sur-
+face features of language than humans, we gathered
+a more controlled set of phrases to compare with
+human judgments.
+Since non-compositional phrases are somewhat
+rare, we began with a set of seed idioms and bi-
+grams from previous studies (Jhamtani et al., 2021;
+Ramisch et al., 2016b; Reddy et al., 2011). We used
+idioms because they are a common source of non-
+compositional phrases. Duplicates after lemmatiza-
+tion were removed.
+For each idiom, we used Google Syntactic
+NGrams to ﬁnd three phrases with an identical part
+of speech and dependency structure to that idiom,
+and frequency that was as close as possible relative
+to others in Syntactic Ngrams (Goldberg and Or-
+want, 2013).4 For example, the idiom "sail under
+false colors" was matched with "distribute among
+poor parishioners". More examples can be found
+in Table 1. An author of this paper inspected the
+idioms and removed those that were syntactically
+analyzed incorrectly or offensive.
+4 Approximating a Composition
+Function
+4.1 Methods
+To approximate the composition functions of mod-
+els, we extract the CLS and A VGrepresentations
+from each model on the Treebank dataset. We used
+10-fold cross-validation and trained the learned
+probes on the 90% training set in each fold. The
+4The part of speech/dependency pattern for each idiom
+was taken to be the most common pattern for that phrase in
+the dataset
+
+====================================================================================================
+2309.16042_best_practices_activation_patching_chunk_001.pdf
+====================================================================================================
+TOWARDS BEST PRACTICES OF ACTIVATION PATCH-
+ING IN LANGUAGE MODELS : M ETRICS AND METHODS
+Fred Zhang∗
+UC Berkeley
+z0@berkeley.edu
+Neel Nanda
+Independent
+neelnanda27@gmail.com
+ABSTRACT
+Mechanistic interpretability seeks to understand the internal mechanisms of
+machine learning models, where localization—identifying the important model
+components—is a key step. Activation patching, also known as causal tracing or
+interchange intervention, is a standard technique for this task (Vig et al., 2020), but
+the literature contains many variants with little consensus on the choice of hyper-
+parameters or methodology. In this work, we systematically examine the impact
+of methodological details in activation patching, including evaluation metrics and
+corruption methods. In several settings of localization and circuit discovery in lan-
+guage models, we find that varying these hyperparameters could lead to disparate
+interpretability results. Backed by empirical observations, we give conceptual ar-
+guments for why certain metrics or methods may be preferred. Finally, we provide
+recommendations for the best practices of activation patching going forwards.
+1 I NTRODUCTION
+Mechanistic interpretability (MI) aims to unravel complex machine learning models by reverse en-
+gineering their internal mechanisms down to human-understandable algorithms (Geiger et al., 2021;
+Olah, 2022; Wang et al., 2023). With such understanding, we can better identify and fix model errors
+(Vig et al., 2020; Hernandez et al., 2021; Meng et al., 2022; Hase et al., 2023), steer model outputs
+(Li et al., 2023b) and explain emergent behaviors (Nanda et al., 2023a; Barak et al., 2022).
+A basic goal in MI is localization: identify the specific model components responsible for partic-
+ular functions. Activation patching, also known as causal tracing, interchange intervention, causal
+mediation analysis or representation denoising, is a standard tool for localization in language mod-
+els (Vig et al., 2020; Meng et al., 2022). The method attempts to pinpoint activations that causally
+affect on the output. Specifically, it involves 3 forward passes of the model: (1) on a clean prompt
+while caching the latent activations; (2) on a corrupted prompt; and (3) on the corrupted prompt but
+replacing the activation of a specific model component by its clean cache. For instance, the clean
+prompt can be “The Eiffel Tower is in” and the corrupted one with the subject replaced by “The
+Colosseum”. If the model outputs “Paris” in step (3) but not in (2), then it suggests that the specific
+component being patched is important for producing the answer (Vig et al., 2020; Pearl, 2001).
+This technique has been widely applied for language model interpretability. For example, Meng
+et al. (2022); Geva et al. (2023) seek to understand which model weights store and process factual
+information. Wang et al. (2023); Hanna et al. (2023); Lieberum et al. (2023) perform circuit analysis:
+identify the sub-network within a model’s computation graph that implements a specified behavior.
+All these works leverage activation patching or its variants as a foundational technique.
+Despite its broad applications across the literature, there is little consensus on the methodological
+details of activation patching. In particular, each paper tends to use its own method of generating
+corrupted prompts and the metric of evaluating patching effects. Concerningly, this lack of standard-
+ization leaves open the possibility that prior interpretability results may be highly sensitive to the
+hyperparameters they adopt. In this work, we study the impact of varying the metrics and methods
+in activation patching, as a step towards understanding best practices. To our knowledge, this is the
+first such systematic study of the technique.
+∗Work done while interning at Google.
+1
+arXiv:2309.16042v2  [cs.LG]  17 Jan 2024
+John
+Mary
+and
+Bob
+Mary
+and
+Xclean Xcorrupt
+Logits?
+(a) Activation patching intervenes on latent states
+Layer 
+Head 
+ −0.2 
+−0.4 
+0 
+0.2 
+0.4 
+0 
+2 
+4 
+6 
+8 
+10 
+0 5 10 (b) Patching attention heads
+Figure 1: The workflow of activation patching for localization: run the intervention procedure (a)
+on every relevant component, such as all the attention heads, and plot the effects (b).
+Specifically, we identify three degrees of freedom in activation patching. First, we focus on the
+approach of generating corrupted prompts and evaluate two prominent methods from the literature:
+• Gaussian noising (GN) adds a large Gaussian noise to the token embeddings of the tokens that
+contain the key information to completing a prompt, such as its subject (Meng et al., 2022).
+• Symmetric token replacement (STR) swaps these key tokens with semantically related ones; for
+example, “The Eiffel Tower”→“The Colosseum” (Vig et al., 2020; Wang et al., 2023).
+Second, we examine the choice of metrics for measuring the effect of patching and compare prob-
+ability and logit difference; both have found applications in the literature (Meng et al., 2022; Wang
+et al., 2023; Conmy et al., 2023). Third, we study sliding window patching, which jointly restores
+the activations of multiple MLP layers, a technique used by Meng et al. (2022); Geva et al. (2023).
+We empirically examine the impact of these hyperparameters on several interpretability tasks, in-
+cluding factual recall (Meng et al., 2022) and circuit discovery for indirect object identification (IOI)
+(Wang et al., 2023), greater-than (Hanna et al., 2023), Python docstring completion (Heimersheim
+& Janiak, 2023) and basic arithmetic (Stolfo et al., 2023). In each setting, we apply methods distinct
+from the original studies and assess how different interpretability results arise from these variations.
+Findings Our contributions uncover nuanced discrepancies within activation patching techniques
+applied to language models. On corruption method, we show that GN and STR can lead to incon-
+sistent localization and circuit discovery outcomes (Section 3.1). Towards explaining the gaps, we
+posit that GN breaks model’s internal mechanisms by putting it off distribution. We give tentative
+evidence for this claim in the setting of IOI circuit discovery (Section 3.2). We believe that this is a
+fundamental concern in using GN corruption for activation patching. On evaluation metrics, we pro-
+vide an analogous set of differences between logit difference and probability (Section 4), including
+an observation that probability can overlook negative model components that hurt performance.
+Finally, we compare sliding window patching with patching individual layers and summing up their
+effects. We find the sliding window method produces more pronounced localization than single-
+layer patching and discuss the conceptual differences between these two approaches (Section 5).
+Recommendations for practice At a high-level, our findings highlight the sensitivity of activation
+patching to methodological details. Backed by our analysis, we make several recommendations on
+the application of activation patching in language model interpretability (Section 6). We advocate for
+STR, as it supplies in-distribution corrupted prompts that help to preserve consistent model behavior.
+On evaluation metric, we recommend logit difference, as we argue that it offers fine-grained control
+over the localization outcomes and is capable of detecting negative modules.
+2 B ACKGROUND
+2.1 A CTIVATION PATCHING
+Activation patching identifies the important model components by intervening on their latent activa-
+tions. The method involves a clean prompt (Xclean, e.g.,“The Eiffel Tower is in”) with an associated
+answer r (“Paris”), a corrupted prompt (Xcorrupt, e.g., “The Colosseum is in”), and three model runs:
+(1) Clean run: run the model on Xclean and cache activations of a set of given model components,
+such as MLP or attention heads outputs.
+2
+(2) Corrupted run: run the model on Xcorrupt and record the model outputs.
+(3) Patched run: run the model on Xcorrupt with a specific model component’s activation restored
+from the cached value of the clean run (Figure 1a).
+Finally, we evaluate the patching effect, such as P(“Paris”) in the patched run (3) compared to
+the corrupted run (2). Intuitively, corruption hurts model performance while patching restores it.
+Patching effect measures how much the patching intervention restores performance, which indicates
+the importance of the activation. We can iterate this procedure over a collection of components (e.g.,
+all attention heads), resulting in a plot that highlights the important ones (Figure 1b).
+Corruption methods To generate Xcorrupt, GN adds Gaussian noise N (0, ν) to the embeddings
+of certain key tokens, where ν is 3 times the standard deviation of the token embeddings from
+the textset. STR replaces the key tokens by similar ones with equal sequence length. In STR,
+let r′ denote the answer of Xcorrupt (“Rome”). All implementations of STR in this paper yield in-
+distribution prompts such that Xcorrupt is identically distributed as a fresh draw of a clean prompt.
+Metrics The patching effect is defined as the gap of the model performance between the corrupted
+and patched run, under an evaluation metric. Let cl, ∗, pt be the clean, corrupted and patched run.
+• Probability: P(r); e.g., P(“Paris”). The patching effect is Ppt(r) − P∗(r);
+• Logit difference: LD (r, r′) = Logit(r) − Logit(r′); e.g., Logit(“Paris”) − Logit(“Rome”).
+The patching effect is given by LDpt(r, r′) −LD∗(r, r′). Following Wang et al. (2023), we always
+normalize this by LD cl(r, r′) − LD∗(r, r′), so it typically lies in [0, 1], where 1 corresponds to
+fully restored performance and 0 to the corrupted run performance.
+• KL divergence: DKL(Pcl||P ), the Kullback-Leibler (KL) divergence from the probability distri-
+bution of model outputs in the clean run. The patching effect is DKL(Pcl||P∗) − DKL(Pcl||Ppt).
+GN does not provide a corrupted prompt with a well-defined answer r′ (“Rome”). To make a fair
+comparison, the same r′ is used for evaluating the logit difference metric under GN.
+2.2 P ROBLEM SETTINGS
+Factual recall In the setting of factual association, the model is prompted to fill in factual infor-
+mation, e.g., “The Eiffel Tower is in”. Meng et al. (2022) posits that Transformer-based language
+models complete factual recall (i) at middle MLP layers and (ii) specifically at the processing of the
+subject’s last token. In this work, we do not treat the hypothesis as ground-truth but rather reevaluate
+it using other approaches than what was attempted by Meng et al. (2022).
+IOI An IOI sentence involves an initial dependent clause, e.g., “When John and Mary went to the
+office”, followed by a main clause, e.g., “John gave a book to Mary.” In this case, the indirect object
+(IO) is “Mary” and the subject (S) “John”. The IOI task is to predict the final token in the sentence
+to be the IO. We use S1 and S2 to refer to the first and second occurrences of the subject (S).
+We let pIOI denote the distribution of IOI sentences of Wang et al. (2023) containing single-token
+names. GPT-2 small performs well on pIOI and Wang et al. (2023) discovers a circuit within the
+model for this task. The circuit consists of attention heads. This is also the focus of our experiments,
+where we uncover nuanced differences when using different techniques to replicate their result.
+3 C ORRUPTION METHODS
+In this section, we evaluate GN and STR on localizing factual recall in GPT-2 XL and discovering
+the IOI circuit in GPT-2 small.
+Experiment setup For factual recall, we investigate Meng et al. (2022)’s hypothesis that model
+computation is concentrated at early-middle MLP layers (by processing the last subject token).
+Specifically, we corrupt the subject token(s) to generate Xcorrupt. In the patched run, we override
+the MLP activations at the last subject token. Following Meng et al. (2022); Hase et al. (2023), at
+3
+
+====================================================================================================
+2311.03658_linear_representation_hypothesis_chunk_001.pdf
+====================================================================================================
+The Linear Representation Hypothesis and
+the Geometry of Large Language Models
+Kiho Park 1 Yo Joong Choe1 Victor Veitch1
+Abstract
+Informally, the “linear representation hypothe-
+sis” is the idea that high-level concepts are repre-
+sented linearly as directions in some representa-
+tion space. In this paper, we address two closely
+related questions: What does “linear represen-
+tation” actually mean? And, how do we make
+sense of geometric notions (e.g., cosine similar-
+ity and projection) in the representation space?
+To answer these, we use the language of coun-
+terfactuals to give two formalizations of linear
+representation, one in the output (word) represen-
+tation space, and one in the input (context) space.
+We then prove that these connect to linear prob-
+ing and model steering, respectively. To make
+sense of geometric notions, we use the formal-
+ization to identify a particular (non-Euclidean)
+inner product that respects language structure in a
+sense we make precise. Using this causal inner
+product, we show how to unify all notions of lin-
+ear representation. In particular, this allows the
+construction of probes and steering vectors using
+counterfactual pairs. Experiments with LLaMA-
+2 demonstrate the existence of linear represen-
+tations of concepts, the connection to interpre-
+tation and control, and the fundamental role of
+the choice of inner product. Code is available at
+github.com/KihoPark/linear rep geometry.
+1. Introduction
+In the context of language models, the “Linear Representa-
+tion Hypothesis” is the idea that high-level concepts are rep-
+resented linearly in the representation space of a model (e.g.,
+Mikolov et al., 2013c; Arora et al., 2016; Elhage et al., 2022).
+High-level concepts might include: is the text in French or
+English? Is it in the present or past tense? If the text is about
+a person, are they male or female? The appeal of the linear
+1University of Chicago, Illinois, USA.
+Proceedings of the 41 st International Conference on Machine
+Learning, Vienna, Austria. PMLR 235, 2024. Copyright 2024 by
+the author(s).
+representation hypothesis is that—were it true—the tasks of
+interpreting and controlling model behavior could exploit
+linear algebraic operations on the representation space. Our
+goal is to formalize the linear representation hypothesis, and
+clarify how it relates to interpretation and control.
+The first challenge is that it is not clear what “linear repre-
+sentation” means. There are (at least) three interpretations:
+1. Subspace: (e.g., Mikolov et al., 2013c; Pennington
+et al., 2014) The first idea is that each concept is rep-
+resented as a (1-dimensional) subspace. For example,
+in the context of word embeddings, it has been ar-
+gued empirically that Rep(“woman”) − Rep(“man”),
+Rep(“queen”) −Rep(“king”), and all similar pairs be-
+long to a common subspace (Mikolov et al., 2013c).
+Then, it is natural to take this subspace to be a repre-
+sentation of the concept of Male/Female.
+2. Measurement: (e.g., Nanda et al., 2023; Gurnee &
+Tegmark, 2023) Next is the idea that the probability of
+a concept value can be measured with a linear probe.
+For example, the probability that the output language
+is French is logit-linear in the representation of the
+input. In this case, we can take the linear map to be a
+representation of the concept of English/French.
+3. Intervention: (e.g., Wang et al., 2023; Turner et al.,
+2023) The final idea is that the value a concept takes
+on can be changed, without changing other concepts,
+by adding a suitable steering vector—e.g., we change
+the output from English to French by adding an
+English/French vector. In this case, we take this
+added vector to be a representation of the concept.
+It is not clear a priori how these ideas relate to each other,
+nor which is the “right” notion of linear representation.
+Next, suppose we have somehow found the linear represen-
+tations of various concepts. We can then use linear algebraic
+operations on the representation space for interpretation and
+control. For example, we might compute the cosine similar-
+ity between a representation and known concept directions,
+or edit representations projected onto target directions. How-
+ever, similarity and projection are geometric notions: they
+require an inner product on the representation space. The
+second challenge is that it is not clear which inner product
+1
+arXiv:2311.03658v2  [cs.CL]  17 Jul 2024
+The Linear Representation Hypothesis and the Geometry of Large Language Models
+ҧ𝛾male⇒female
+≈ 𝛾 "queen" − 𝛾("king")
+ҧ𝑔male⇒female
+= ҧ𝑙male⇒female ҧ𝑔English⇒French
+= ҧ𝑙English⇒French
+Causal Inner Product
+ҧ𝛾English⇒French
+≈ 𝛾 "roi" − 𝛾("king")
+ҧ𝜆English⇒French
+≈ 𝜆 "Il est le" − 𝜆("He is the")
+ҧ𝜆male⇒female
+≈ 𝜆 "She is the" − 𝜆("He is the")
+Figure 1. The geometry of linear representations can be understood in terms of a causal inner product that respects the semantic structure
+of concepts. In a language model, each concept has two separate linear representations, ¯λ (red) in the embedding (input context) space
+and ¯γ (blue) in the unembedding (output word) space, as drawn on the left. The causal inner product induces a linear transformation
+for the representation spaces such that the transformed linear representations coincide (purple), as drawn on the right. In this unified
+representation space, causally separable concepts are represented by orthogonal vectors.
+is appropriate for understanding model representations.
+To address these, we make the following contributions:
+1. First, we formalize the subspace notion of linear rep-
+resentation in terms of counterfactual pairs, in both
+“embedding” (input context) and “unembedding” (out-
+put word) spaces. Using this formalization, we prove
+that the unembedding notion connects to measurement,
+and the embedding notion to intervention.
+2. Next, we introduce the notion of a causal inner prod-
+uct: an inner product with the property that concepts
+that can vary freely of each other are represented as or-
+thogonal vectors. We show that such an inner product
+has the special property that it unifies the embedding
+and unembedding representations, as illustrated in Fig-
+ure 1. Additionally, we show how to estimate the inner
+product using the LLM unembedding matrix.
+3. Finally, we study the linear representation hypothesis
+empirically using LLaMA-2 (Touvron et al., 2023). We
+find the subspace notion of linear representations for a
+variety of concepts. Using these, we give evidence that
+the causal inner product respects semantic structure,
+and that subspace representations can be used to con-
+struct measurement and intervention representations.
+Background on Language Models We will require some
+minimal background on (large) language models. Formally,
+a language model takes in context text x and samples out-
+put text. This sampling is done word by word (or token
+by token). Accordingly, we’ll view the outputs as single
+words. To define a probability distribution over outputs,
+the language model first maps each context x to a vector
+λ(x) in a representation space Λ ≃ Rd. We will call these
+embedding vectors. The model also represents each word y
+as an unembedding vector γ(y) in a separate representation
+space Γ ≃ Rd. The probability distribution over the next
+words is then given by the softmax distribution:
+P(y | x) ∝ exp(λ(x)⊤γ(y)).
+2. The Linear Representation Hypothesis
+We begin by formalizing the subspace notion of linear repre-
+sentation, one in each of the unembedding and embedding
+spaces of language models, and then tie the subspace notions
+to the measurement and intervention notions.
+2.1. Concepts
+The first step is to formalize the notion of a concept. In-
+tuitively, a concept is any factor of variation that can be
+changed in isolation. For example, we can change the out-
+put from French to English without changing its meaning,
+or change the output from being about a man to about a
+woman without changing the language it is written in.
+Following Wang et al. (2023), we formalize this idea by
+taking a concept variable W to be a latent variable that is
+caused by the context X, and that acts as a cause of the out-
+put Y . For simplicity of exposition, we will restrict attention
+to binary concepts. Anticipating the representation of con-
+cepts by vectors, we introduce an ordering on each binary
+concept—e.g., male⇒female. This ordering makes the
+sign of a representation meaningful (e.g., the representation
+of female⇒male will have the opposite sign).
+Each concept variable W defines a set of counterfactual out-
+puts {Y (W = w)} that differ only in the value of W . For
+example, for the concept male⇒female, (Y (0), Y (1))
+is a random element of the set {(“man”, “woman”), (“king”,
+2
+The Linear Representation Hypothesis and the Geometry of Large Language Models
+“queen”), . . .}. In this paper, we assume the value of con-
+cepts can be read off deterministically from the sampled
+output (e.g., the output “king” implies W = 0 ). Then,
+we can specify concepts by specifying their corresponding
+counterfactual outputs.
+We will eventually need to reason about the relationships
+between multiple concepts. We say that two concepts W
+and Z are causally separable if Y (W = w, Z = z) is
+well-defined for each w, z. That is, causally separable
+concepts are those that can be varied freely and in iso-
+lation. For example, the concepts English⇒French
+and male⇒female are causally separable—consider
+{“king”, “queen”, “roi”, “reine”}. However, the concepts
+English⇒French and English⇒Russian are not
+because they cannot vary freely.
+We’ll writeY (W = w, Z = z) as Y (w, z) when the con-
+cepts are clear from context.
+2.2. Unembedding Representations and Measurement
+We now turn to formalizing linear representations of a con-
+cept. The first observation is that there are two distinct repre-
+sentation spaces in play—the embedding space Λ and the un-
+embedding space Γ. A concept could be linearly represented
+in either space. We begin with the unembedding space.
+Defining the cone of vector v as Cone(v) = {αv : α > 0},
+Definition 2.1 (Unembedding Representation). We say that
+¯γW is an unembedding representation of a concept W if
+γ(Y (1)) − γ(Y (0)) ∈ Cone(¯γW ) almost surely.
+This definition captures the subspace notion in the unem-
+bedding space, e.g., that γ(“queen”) − γ(“king”) is parallel
+to γ(“woman”) − γ(“man”). We use a cone instead of sub-
+space because the sign of the difference is significant—i.e.,
+the difference between “king” and “queen” is in the opposite
+direction as the difference between “woman” and “man”.
+The unembedding representation (if it exists) is unique up
+to positive scaling, consistent with the linear subspace hy-
+pothesis that concepts are represented as directions.
+Connection to Measurement The first result is that the
+unembedding representation is closely tied to the measure-
+ment notion of linear representation:
+Theorem 2.2 (Measurement Representation). Let W be a
+concept, and let ¯γW be the unembedding representation of
+W . Then, given any context embedding λ ∈ Λ,
+logit P(Y = Y (1) | Y ∈ {Y (0), Y (1)}, λ) = αλ⊤¯γW ,
+where α > 0 (a.s.) is a function of {Y (0), Y (1)}.
+All proofs are given in Appendix B.
+In words: if we know the output token is either “king” or
+“queen” (say, the context was about a monarch), then the
+probability that the output is “king” is logit-linear in the lan-
+guage model representation with regression coefficients¯γW .
+The random scalar α is a function of the particular coun-
+terfactual pair {Y (0), Y (1)}—e.g., it may be different for
+{“king”, “queen”} and {“roi”, “reine”}. However, the di-
+rection used for prediction is the same for all counterfactual
+pairs demonstrating the concept.
+Theorem 2.2 shows a connection between the subspace rep-
+resentation and the linear representation learned by fitting a
+linear probe to predict the concept. Namely, in both cases,
+we get a predictor that is linear on the logit scale. However,
+the unembedding representation differs from a probe-based
+representation in that it does not incorporate any informa-
+tion about correlated but off-target concepts. For example,
+if French text were disproportionately about men, a probe
+could learn this information (and include it in the represen-
+tation), but the unembedding representation would not. In
+this sense, the unembedding representation might be viewed
+as an ideal probing representation.
+2.3. Embedding Representations and Intervention
+The next step is to define a linear subspace representa-
+tion in the embedding space Λ. We’ll again go with
+a notion anchored in demonstrative pairs. In the em-
+bedding space, each λ(x) defines a distribution over
+concepts. We consider pairs of sentences such as
+λ0 = λ(“He is the monarch of England, ”) and λ1 =
+λ(“She is the monarch of England, ”) that induce different
+distributions on the target concept, but the same distribu-
+tion on all off-target concepts. A concept is embedding-
+represented if the differences between all such pairs belong
+to a common subspace. Formally,
+Definition 2.3 (Embedding Representation). We say that
+¯λW is an embedding representation of a concept W if we
+have λ1 − λ0 ∈ Cone(¯λW ) for any context embeddings
+λ0, λ1 ∈ Λ that satisfy
+P(W = 1 | λ1)
+P(W = 1 | λ0) > 1 and P(W, Z | λ1)
+P(W, Z | λ0) = P(W | λ1)
+P(W | λ0) ,
+for each concept Z that is causally separable with W .
+The first condition ensures that the direction is relevant to
+the target concept, and the second condition ensures that the
+direction is not relevant to off-target concepts.
+Connection to Intervention It turns out the embedding
+representation is closely tied to the intervention notion of
+linear representation. For this, we need the following lemma
+relating embedding and unembedding representations.
+3
+
+====================================================================================================
+2406.04093_scaling_and_evaluating_sparse_autoencoders_chunk_001.pdf
+====================================================================================================
+Scaling and evaluating sparse autoencoders
+Leo Gao∗ Tom Dupré la Tour† Henk Tillman†
+Gabriel Goh Rajan Troll Alec Radford
+Ilya Sutskever Jan Leike Jeffrey Wu †
+OpenAI
+Abstract
+Sparse autoencoders provide a promising unsupervised approach for extracting in-
+terpretable features from a language model by reconstructing activations from a
+sparse bottleneck layer. Since language models learn many concepts, autoencoders
+need to be very large to recover all relevant features. However, studying the proper-
+ties of autoencoder scaling is difficult due to the need to balance reconstruction and
+sparsity objectives and the presence of dead latents. We propose using k-sparse
+autoencoders [Makhzani and Frey, 2013] to directly control sparsity, simplifying
+tuning and improving the reconstruction-sparsity frontier. Additionally, we find
+modifications that result in few dead latents, even at the largest scales we tried. Us-
+ing these techniques, we find clean scaling laws with respect to autoencoder size
+and sparsity. We also introduce several new metrics for evaluating feature qual-
+ity based on the recovery of hypothesized features, the explainability of activation
+patterns, and the sparsity of downstream effects. These metrics all generally im-
+prove with autoencoder size. To demonstrate the scalability of our approach, we
+train a 16 million latent autoencoder on GPT-4 activations for 40 billion tokens.
+We release code and autoencoders for open-source models, as well as a visualizer.3
+1 Introduction
+Sparse autoencoders (SAEs) have shown great promise for finding features [Cunningham et al., 2023,
+Bricken et al., 2023, Templeton et al., 2024, Goh, 2016] and circuits [Marks et al., 2024] in language
+models. Unfortunately, they are difficult to train due to their extreme sparsity, so prior work has
+primarily focused on training relatively small sparse autoencoders on small language models.
+We develop a state-of-the-art methodology to reliably train extremely wide and sparse autoencoders
+with very few dead latents on the activations of any language model. We systematically study the
+scaling laws with respect to sparsity, autoencoder size, and language model size. To demonstrate
+that our methodology can scale reliably, we train a 16 million latent autoencoder on GPT-4 [OpenAI,
+2023] residual stream activations.
+Because improving reconstruction and sparsity is not the ultimate objective of sparse autoencoders, we
+also explore better methods for quantifying autoencoder quality. We study quantities corresponding
+∗Primary Contributor. Correspondence to lg@openai.com.
+†Core Research Contributor. This project was conducted by the Superalignment Interpretability team. Author
+contributions statement in Appendix I.
+3Our open source code can be found at https://github.com/openai/sparse_autoencoder and our visualizer is
+hosted at https://openaipublic.blob.core.windows.net/sparse-autoencoder/sae-viewer/index.html
+arXiv:2406.04093v1  [cs.LG]  6 Jun 2024
+10 9
+ 10 7
+ 10 5
+FLOPs (as fraction of GPT-4 pretraining)
+0.2
+0.3
+0.4
+0.5
+0.6Normalized MSE
+L(C)
+L = 0.09 + 0.056 C 0.084
+104
+105
+106
+107
+Number of Latents
+104 105
+Number of Latents
+3 × 10 1
+4 × 10 1
+6 × 10 1
+Normalized MSE
+L(N, k)
+32
+64
+128
+256
+512
+k
+Figure 1: Scaling laws for TopK autoencoders trained on GPT-4 activations. (Left) Optimal loss for a
+fixed compute budget. (Right) Joint scaling law of loss at convergence with fixed number of total
+latents n and fixed sparsity (number of active latents) k. Details in Section 3.
+to: whether certain hypothesized features were recovered, whether downstream effects are sparse,
+and whether features can be explained with both high precision and recall.
+Our contributions:
+1. In Section 2, we describe a state-of-the-art recipe for training sparse autoencoders.
+2. In Section 3, we demonstrate clean scaling laws and scale to large numbers of latents.
+3. In Section 4, we introduce metrics of latent quality and find larger sparse autoencoders are
+generally better according to these metrics.
+We also release code, a full suite of GPT-2 small autoencoders, and a feature visualizer for GPT-2
+small autoencoders and the 16 million latent GPT-4 autoencoder.
+2 Methods
+2.1 Setup
+Inputs: We train autoencoders on the residual streams of both GPT-2 small [Radford et al., 2019]
+and models from a series of increasing sized models sharing GPT-4 architecture and training setup,
+including GPT-4 itself [OpenAI, 2023] 4. We choose a layer near the end of the network, which
+should contain many features without being specialized for next-token predictions (see Section F.1
+for more discussion). Specifically, we use a layer 5
+6 of the way into the network for GPT-4 series
+models, and we use layer 8 ( 3
+4 of the way) for GPT-2 small. We use a context length of 64 tokens for
+all experiments. We subtract the mean over the dmodel dimension and normalize to all inputs to unit
+norm, prior to passing to the autoencoder (or computing reconstruction errors).
+Evaluation: After training, we evaluate autoencoders on sparsity L 0, and reconstruction mean-
+squared error (MSE). We report a normalized version of all MSE numbers, where we divide by a
+baseline reconstruction error of always predicting the mean activations.
+Hyperparameters: To simplify analysis, we do not consider learning rate warmup or decay unless
+otherwise noted. We sweep learning rates at small scales and extrapolate the trend of optimal learning
+rates for large scale. See Appendix A for other optimization details.
+2.2 Baseline: ReLU autoencoders
+For an input vector x ∈ Rd from the residual stream, and n latent dimensions, we use baseline ReLU
+autoencoders from [Bricken et al., 2023]. The encoder and decoder are defined by:
+z = ReLU(Wenc(x − bpre) + benc)
+ˆx = Wdecz + bpre
+(1)
+4All presented results either have qualitatively similar results on both GPT-2 small and GPT-4 models, or
+were only ran on one model class.
+2
+101 102
+Sparsity (L0)
+4 × 10 1
+5 × 10 1
+6 × 10 1
+Normalized MSE
+better
+ReLU
+ProLU STE
+Gated
+T opK (ours)
+(a) At a fixed number of latents (n = 32768), TopK
+has a better reconstruction-sparsity trade off than
+ReLU and ProLU, and is comparable to Gated.
+104 105
+Number of Latents
+4 × 10 1
+5 × 10 1
+6 × 10 1
+Normalized MSE
+ReLU
+ProLU STE
+Gated
+T opK (ours)
+(b) At a fixed sparsity level (L0 = 128), scaling laws
+are steeper for TopK than ReLU.6
+Figure 2: Comparison between TopK and other activation functions.
+with Wenc ∈ Rn×d, benc ∈ Rn, Wdec ∈ Rd×n, and bpre ∈ Rd. The training loss is defined by
+L = ||x − ˆx||2
+2 + λ||z||1, where ||x − ˆx||2
+2 is the reconstruction MSE, ||z||1 is an L1 penalty promoting
+sparsity in latent activations z, and λ is a hyperparameter that needs to be tuned.
+2.3 TopK activation function
+We use a k-sparse autoencoder [Makhzani and Frey, 2013], which directly controls the number of
+active latents by using an activation function (TopK) that only keeps thek largest latents, zeroing the
+rest. The encoder is thus defined as:
+z = TopK(Wenc(x − bpre)) (2)
+and the decoder is unchanged. The training loss is simply L = ||x − ˆx||2
+2.
+Using k-sparse autoencoders has a number of benefits:
+• It removes the need for the L 1 penalty. L 1 is an imperfect approximation of L 0, and it
+introduces a bias of shrinking all positive activations toward zero (Section 5.1).
+• It enables setting the L0 directly, as opposed to tuning an L1 coefficient λ, enabling simpler
+model comparison and rapid iteration. It can also be used in combination with arbitrary
+activation functions.5
+• It empirically outperforms baseline ReLU autoencoders on the sparsity-reconstruction
+frontier (Figure 2a), and this gap increases with scale (Figure 2b).
+• It increases monosemanticity of random activating examples by effectively clamping small
+activations to zero (Section 4.3).
+2.4 Preventing dead latents
+Dead latents pose another significant difficulty in autoencoder training. In larger autoencoders, an
+increasingly large proportion of latents stop activating entirely at some point in training. For example,
+Templeton et al. [2024] train a 34 million latent autoencoder with only 12 million alive latents,
+and in our ablations we find up to 90% dead latents7 when no mitigations are applied (Figure 15).
+This results in substantially worse MSE and makes training computationally wasteful. We find two
+important ingredients for preventing dead latents: we initialize the encoder to the transpose of the
+decoder, and we use an auxiliary loss that models reconstruction error using the top-kaux dead latents
+(see Section A.2 for more details). Using these techniques, even in our largest (16 million latent)
+autoencoder only 7% of latents are dead.
+5In our code, we also apply a ReLU to guarantee activations to be non-negative. However, the training curves
+are indistinguishable, as the k largest activations are almost always positive for reasonable choices of k.
+6Non-TopK cannot set a precise L0, so we interpolated using a piecewise linear function in log-log space.
+7We follow Templeton et al. [2024], and consider a latent dead if it has not activated in 10 million tokens
+3
+
+====================================================================================================
+2408.05147_gemma_scope_chunk_001.pdf
+====================================================================================================
+2024-08-09
+Gemma Scope: Open Sparse Autoencoders
+Everywhere All At Once on Gemma 2
+Tom Lieberum1, Senthooran Rajamanoharan1, Arthur Conmy1, Lewis Smith1, Nicolas Sonnerat1, Vikrant
+Varma1, János Kramár1, Anca Dragan1, Rohin Shah1 and Neel Nanda1
+1Google DeepMind
+Sparse autoencoders (SAEs) are an unsupervised method for learning a sparse decomposition of a
+neural network’s latent representations into seemingly interpretable features. Despite recent excitement
+about their potential, research applications outside of industry are limited by the high cost of training a
+comprehensive suite of SAEs. In this work, we introduce Gemma Scope, an open suite of JumpReLU
+SAEs trained on all layers and sub-layers of Gemma 2 2B and 9B and select layers of Gemma 2 27B
+base models. We primarily train SAEs on the Gemma 2 pre-trained models, but additionally release
+SAEs trained on instruction-tuned Gemma 2 9B for comparison. We evaluate the quality of each SAE
+on standard metrics and release these results. We hope that by releasing these SAE weights, we can
+help make more ambitious safety and interpretability research easier for the community. Weights and
+a tutorial can be found athttps://huggingface.co/google/gemma-scope and an interactive demo
+can be found athttps://neuronpedia.org/gemma-scope.
+1. Introduction
+There are several lines of evidence that suggest
+that a significant fraction of the internal acti-
+vations of language models are sparse, linear
+combination of vectors, each corresponding to
+meaningful features (Elhage et al., 2022; Gurnee
+et al., 2023; Mikolov et al., 2013; Nanda et al.,
+2023a; Olah et al., 2020; Park et al., 2023). But
+by default, it is difficult to identify which vec-
+tors are meaningful, or which meaningful vectors
+are present. Sparse autoencoders are a promis-
+ing unsupervised approach to do this, and have
+been shown to often find causally relevant, in-
+terpretable directions (Bricken et al., 2023; Cun-
+ningham et al., 2023; Gao et al., 2024; Marks
+et al., 2024; Templeton et al., 2024). If this ap-
+proach succeeds it could help unlock many of the
+hoped for applications of interpretability (Hub-
+inger, 2022; Nanda, 2022; Olah, 2021), such as
+detecting and fixing hallucinations, being able
+to reliably explain and debug unexpected model
+behaviour and preventing deception or manipu-
+lation from autonomous AI agents.
+However, sparse autoencoders are still an im-
+mature technique, and there are many open prob-
+lems to be resolved (Templeton et al., 2024) be-
+fore these downstream uses can be unlocked –
+especially validating or red-teaming SAEs as an
+approach, learning how to measure their perfor-
+mance, learning how to train SAEs at scale effi-
+ciently and well, and exploring how SAEs can be
+productively applied to real-world tasks.
+As a result, there is an urgent need for further
+research, bothinindustryandinthebroadercom-
+munity. However, unlike previous interpretability
+techniques like steering vectors (Li et al., 2023;
+Turner et al., 2024) or probing (Belinkov, 2022),
+sparse autoencoders can be highly expensive and
+difficult to train, limiting the ambition of inter-
+pretability research. Though there has been a lot
+of excellent work with sparse autoencoders on
+smaller models (Bricken et al., 2023; Cunning-
+ham et al., 2023; Dunefsky et al., 2024; Marks
+et al., 2024), the works that use SAEs on more
+modernmodelshavenormallyfocusedonresidual
+stream SAEs at a single layer (Engels et al., 2024;
+Gao et al., 2024; Templeton et al., 2024). In addi-
+tion, many of these (Gao et al., 2024; Templeton
+et al., 2024) have been trained on proprietary
+models which makes it more challenging for the
+community at large to build on this work.
+To address this we have trained and released
+the weights of Gemma Scope: a comprehensive,
+open suite of JumpReLU SAEs (Rajamanoharan
+Corresponding author( s): tlieberum@google.com
+© 2024 Google DeepMind. All rights reserved
+arXiv:2408.05147v2  [cs.LG]  19 Aug 2024
+Gemma Scope: Open Sparse Autoencoders Everywhere All At Once on Gemma 2
+et al., 2024b) on every layer and sublayer of
+Gemma 2 9B and 2B (Gemma Team, 2024b),1 as
+well select layers of the larger 27B model in this
+series. We release these weights under a permis-
+sive CC-BY-4.0 license2 on HuggingFace to enable
+and accelerate research by other members of the
+research community.
+Gemma Scope was a significant engineering
+challenge to train. It contains more than 400
+sparse autoencoders in the main release3, with
+more than 30 million learned features in total
+(though many features likely overlap), trained
+on 4-16B tokens of text each. We used over 20%
+of the training compute of GPT-3 (Brown et al.,
+2020), saved about 20 Pebibytes (PiB) of activa-
+tionstodisk, andproducedhundredsofbillionsof
+sparse autoencoder parameters in total. This was
+made more challenging by our decision to make
+a comprehensivesuite of SAEs, on every layer and
+sublayer. We believe that a comprehensive suite
+is essential for enabling more ambitious applica-
+tions of interpretability, such as circuit analysis
+(Conmy et al., 2023; Hanna et al., 2023; Wang
+et al., 2022), essentially scaling up Marks et al.
+(2024) to larger models, which may be necessary
+toanswermysteriesaboutlargermodelslikewhat
+happens during chain of thought or in-context
+learning.
+In Section 2 we provide background on SAEs
+in general and JumpReLU SAEs in particular. Sec-
+tion 3 contains details of our training procedure,
+hyperparameters and computational infrastruc-
+ture. We run extensive evaluations on the trained
+SAEs in Section 4 and a list of open problems that
+Gemma Scope could help tackle in Section 5.
+1We also release one suite of transcoders (Dunefsky et al.
+(2024); Appendix B), a ‘feature-splitting’ suite of SAEs with
+multiple widths trained on the same site (Section 4.3), and
+some SAEs trained on the Gemma 2 9B IT model (Kissane
+et al. (2024b); Section 4.5).
+2Note that the Gemma 2 models are released under a
+different, custom license.
+3For each model, layer and site we in fact release mul-
+tiple SAEs with differing levels of sparsity; taking this into
+account, we release the weights of over 2,000 SAEs in total.
+2. Preliminaries
+2.1. Sparse autoencoders
+Given activationsx ∈ ℝ𝑛 from a language model,
+a sparse autoencoder (SAE) decomposes and re-
+constructs the activations using a pair of encoder
+and decoder functions(f, ˆx) defined by:
+f (x) := 𝜎 (Wencx + benc) , (1)
+ˆx(f) := Wdecf + bdec. (2)
+Thesefunctionsaretrainedtomap ˆx(f (x)) backto
+x, making them an autoencoder. Thus,f (x) ∈ ℝ𝑀
+is a set of linear weights that specify how to com-
+bine the 𝑀 ≫ 𝑛 columns of Wdec to reproduce
+x. The columns ofWdec, which we denote byd𝑖
+for 𝑖 = 1 . . . 𝑀, represent the dictionary of direc-
+tions into which the SAE decomposesx. We will
+refer to to these learned directions aslatents to
+disambiguate between learnt ‘features’ and the
+conceptual features which are hypothesized to
+comprise the language model’s representation
+vectors.4
+The decompositionf (x) is madenon-negative
+and sparse through the choice of activation func-
+tion 𝜎 and appropriate regularization, such that
+f (x) typically has much fewer than𝑛 non-zero
+entries. Initial work (Bricken et al., 2023; Cun-
+ningham et al., 2023) used a ReLU activation
+function to enforce non-negativity, and an L1
+penalty on the decompositionf (x) to encourage
+sparsity. TopK SAEs (Gao et al., 2024) enforce
+sparsity by zeroing all but the top K entries of
+f (x), whereas the JumpReLU SAEs (Rajamanoha-
+ran et al., 2024b) enforce sparsity by zeroing out
+all entries off (x) below a positive threshold. Both
+TopK and JumpReLU SAEs allow for greater sep-
+aration between the tasks of determining which
+latents are active, and estimating their magni-
+tudes.
+2.2. JumpReLU SAEs
+In this work we focus on JumpReLU SAEs as they
+have been shown to be a slight Pareto improve-
+4This is different terminology from earlier work (Bricken
+et al., 2023; Rajamanoharan et al., 2024a,b), where feature
+is normally used interchangeably for both SAE latents and
+the language models features
+2
+Gemma Scope: Open Sparse Autoencoders Everywhere All At Once on Gemma 2
+ment over other approaches, and allow for a vari-
+able number of active latents at different tokens
+(unlike TopK SAEs).
+JumpReLU activation The JumpReLU activa-
+tionisashiftedHeavisidestepfunctionasagating
+mechanism together with a conventional ReLU:
+𝜎(z) = JumpReLU𝜽(z) := z ⊙ 𝐻 (z − 𝜽). (3)
+Here, 𝜽 > 0 is the JumpReLU’s vector-valued
+learnable threshold parameter,⊙ denotes elemen-
+twise multiplication, and𝐻 is the Heaviside step
+function, which is 1 if its input is positive and 0
+otherwise. Intuitively, the JumpReLU leaves the
+pre-activations unchanged above the threshold,
+but sets them to zero below the threshold, with a
+different learned threshold per latent.
+Lossfunction Aslossfunctionweuseasquared
+error reconstruction loss, and directly regularize
+the number of active (non-zero) latents using the
+L0 penalty:
+L := ∥x − ˆx(f (x)) ∥2
+2 + 𝜆 ∥f (x) ∥0, (4)
+where 𝜆 is the sparsity penalty coefficient. Since
+the L0 penalty and JumpReLU activation function
+are piecewise constant with respect to threshold
+parameters 𝜽, we use straight-through estimators
+(STEs) to train𝜽, using the approach described in
+Rajamanoharan et al. (2024b). This introduces
+an additional hyperparameter, the kernel density
+estimator bandwidth𝜀, which controls the qual-
+ity of the gradient estimates used to train the
+threshold parameters𝜽.5
+3. Training details
+3.1. Data
+WetrainSAEsontheactivationsofGemma2mod-
+els generated using text data from the same distri-
+5A large value of𝜀 results in biased but low variance es-
+timates, leading to SAEs with good sparsity but sub-optimal
+fidelity, whereas a low value of𝜀 results in high variance
+estimates that cause the threshold to fail to train at all,
+resulting in SAEs that fail to be sparse. We find through
+hyperparameter sweeps across multiple layers and sites that
+𝜀 = 0.001 provides a good trade-off (when SAE inputs are
+normalized to have a unit mean squared norm) and use this
+to train the SAEs released as part of Gemma Scope.
+bution as the pretraining text data for Gemma 1
+(GemmaTeam,2024a),exceptfortheonesuiteof
+SAEs trained on the instruction-tuned (IT) model
+(Section 4.5).
+For a given sequence we only collect activa-
+tions from tokens which are neitherBOS, EOS,
+nor padding. After activations have been gener-
+ated, they are shuffled in buckets of about106
+activations. We speculate that a perfect shuffle
+would not significantly improve results, but this
+was not systematically checked. We would wel-
+comefurtherinvestigationintothistopicinfuture
+work.
+During training, activation vectors are normal-
+ized by a fixed scalar to have unit mean squared
+norm.6 This allows more reliable transfer of hy-
+perparameters (in particular the sparsity coeffi-
+cient 𝜆 and bandwidth 𝜀) between layers and
+sites, as the raw activation norms can vary over
+multiple orders of magnitude, changing the scale
+ofthereconstructionlossinEq.(4). Oncetraining
+is complete, we rescale the trained SAE param-
+eters so that no input normalization is required
+for inference (see Appendix A for details).
+As shown in Table 1, SAEs with 16.4K latents
+are trained for 4B tokens, while 1M-width SAEs
+are trained for 16B tokens. All other SAEs are
+trained for 8B tokens.
+Location We train SAEs on three locations per
+layer, as indicated by Fig. 1. We train on the at-
+tention head outputs before the final linear trans-
+formation 𝑊𝑂 and RMSNorm has been applied
+(Kissane et al., 2024a), on the MLP outputs after
+the RMSNorm has been applied and on the post
+MLP residual stream. For the attention output
+SAEs, we concatenate the outputs of the individ-
+ual attention heads and learn a joint SAE for the
+full set of heads. We zero-index the layers, so
+layer 0 refers to the first transformer block after
+the embedding layer. In Appendix B we define
+transcoders (Dunefsky et al., 2024) and train one
+suite of these.
+6This is similar in spirit to Conerly et al. (2024), who
+normalize the dataset to have mean norm of
+√︁
+𝑑model.
+3
+
+====================================================================================================
+2409.04185_residual_stream_analysis_with_multi_layer_saes_chunk_001.pdf
+====================================================================================================
+Published as a conference paper at ICLR 2025
+RESIDUAL STREAM ANALYSIS WITH MULTI -L AYER
+SAE S
+Tim Lawson∗ Lucy Farnik Conor Houghton Laurence Aitchison
+School of Engineering Mathematics and Technology
+University of Bristol
+Bristol, UK
+ABSTRACT
+Sparse autoencoders (SAEs) are a promising approach to interpreting the internal
+representations of transformer language models. However, SAEs are usually trained
+separately on each transformer layer, making it difficult to use them to study how
+information flows across layers. To solve this problem, we introduce the multi-layer
+SAE (MLSAE): a single SAE trained on the residual stream activation vectors from
+every transformer layer. Given that the residual stream is understood to preserve
+information across layers, we expected MLSAE latents to ‘switch on’ at a token
+position and remain active at later layers. Interestingly, we find that individual
+latents are often active at a single layer for a given token or prompt, but the layer at
+which an individual latent is active may differ for different tokens or prompts. We
+quantify these phenomena by defining a distribution over layers and considering
+its variance. We find that the variance of the distributions of latent activations
+over layers is about two orders of magnitude greater when aggregating over tokens
+compared with a single token. For larger underlying models, the degree to which
+latents are active at multiple layers increases, which is consistent with the fact
+that the residual stream activation vectors at adjacent layers become more similar.
+Finally, we relax the assumption that the residual stream basis is the same at every
+layer by applying pre-trained tuned-lens transformations, but our findings remain
+qualitatively similar. Our results represent a new approach to understanding how
+representations change as they flow through transformers. We release our code to
+train and analyze MLSAEs at https://github.com/tim-lawson/mlsae.
+1 I NTRODUCTION
+Sparse autoencoders (SAEs) learn interpretable directions or ‘features’ in the representation spaces
+of language models (Elhage et al., 2022; Cunningham et al., 2023; Bricken et al., 2023). Typically,
+SAEs are trained on the activation vectors from a single model layer (Gao et al., 2024; Templeton
+et al., 2024; Lieberum et al., 2024). This approach illuminates the representations within a layer.
+However, Olah (2024); Templeton et al. (2024) believe that models may encode meaningful concepts
+by simultaneous activations in multiple layers, which SAEs trained at a single layer do not address.
+Furthermore, it is not straightforward to automatically identify correspondences between features
+from SAEs trained at different layers, which may complicate circuit analysis (e.g. He et al., 2024).
+To solve this problem, we take inspiration from the residual stream perspective, which states that
+transformers (Vaswani et al., 2017) selectively write information to and read information from token
+positions with self-attention and MLP layers (Elhage et al., 2021; Ferrando et al., 2024). The results
+of subsequent circuit analyses, like the explanation of the indirect object identification task presented
+by Wang et al. (2022), support this viewpoint and cause us to expect the activation vectors at adjacent
+layers in the residual stream to be relatively similar (Lad et al., 2024).
+To capture the structure shared between layers in the residual stream, we introduce the multi-layer
+SAE (MLSAE): a single SAE trained on the residual stream activation vectors from every layer of
+a transformer language model. Importantly, the autoencoder itself has a single hidden layer – it is
+∗Correspondence to tim.lawson@bristol.ac.uk.
+1
+arXiv:2409.04185v3  [cs.LG]  24 Feb 2025
+Published as a conference paper at ICLR 2025
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+0
+0.2
+0.4
+0.6
+0.8
+1
+Relative Layer
+Mean Cosine Similarity
+Pythia-70m Pythia-160m
+Pythia-410m Pythia-1b
+Pythia-1.4b Pythia-2.8b
+Figure 1: The mean cosine similarities between the residual stream activation vectors at adjacent
+layers of transformers, over 10 million tokens from the test set. To compare transformers with
+different numbers of layers, we divide the lower of each pair of adjacent layers by the number of
+pairs. This ‘relative layer’ is thex-axis of the plot. We subtract the dataset mean from the activation
+vectors at each layer before computing cosine similarities to control for changes in the norm between
+layers (Heimersheim & Turner, 2023), which we demonstrate in Figure 4.
+multi-layer only in the sense that it is trained on activations from multiple layers of the underlying
+transformer. In particular, we consider the activation vectors from each layer as separate training
+examples, which is equivalent to training a single SAE at each layer individually but with the
+parameters tied across layers. We briefly discuss alternative methods in Section 5.
+We show that multi-layer SAEs achieve comparable reconstruction error and downstream loss to
+single-layer SAEs while allowing us to directly identify and analyze features that are active at multiple
+layers (Section 4.1). When aggregating over a large sample of tokens, we find that individual latents
+are likely to be active at multiple layers, and this measure increases with the number of latents.
+However, for a single token, latent activations are more likely to be isolated to a single layer. For
+larger underlying transformers, we show that the residual stream activation vectors at adjacent layers
+are more similar and that the degree to which latents are active at multiple layers increases.
+Finally, we relax the assumption that the residual stream basis is the same at every layer by applying
+pre-trained tuned-lens transformations to activation vectors before passing them to the encoder.
+Surprisingly, this does not obviously increase the extent of multi-layer latent activations.
+2 R ELATED WORK
+A sparse code represents many signals, such as sensory inputs, by simultaneously activating a
+relatively small number of elements, such as neurons (Olshausen & Field, 1996; Bell & Sejnowski,
+1997). Sparse dictionary learning (SDL) approximates each input vector by a linear combination
+of a relatively small number of learned basis vectors. The learned basis is usually overcomplete: it
+has a greater dimension than the inputs. Independent Component Analysis (ICA) achieves this aim
+by maximizing the statistical independence of the learned basis vectors by iterative optimization or
+training (Bell & Sejnowski, 1995; 1997; Hyvärinen & Oja, 2000; Le et al., 2011). Sparse autoencoders
+(SAEs) can be understood as ICA with the addition of a noise model optimized by gradient descent
+(Lee et al., 2006; Ng, 2011; Makhzani & Frey, 2014)
+The activations of language models have been hypothesized to be a dense, compressed version
+of a sparse, expanded representation space (Elhage et al., 2021; 2022). Under this view, there
+are interpretable directions in the dense representation spaces corresponding to distinct semantic
+concepts, whereas their basis vectors (neurons) are ‘polysemantic’ (Park et al., 2023). It has been
+shown theoretically (Wright & Ma, 2022) and empirically (Elhage et al., 2022; Sharkey et al., 2022;
+Whittington et al., 2023) that SDL recovers ground-truth features in toy models, and that learned
+dictionary elements are more interpretable than the basis vectors of language models (Cunningham
+et al., 2023; Bricken et al., 2023) or dense embeddings (O’Neill et al., 2024). Notably, ‘features’ are
+not necessarily linear (Wattenberg & Viégas, 2024; Engels et al., 2024; Hernandez et al., 2024).
+2
+Published as a conference paper at ICLR 2025
+0
+11Layer
+Pythia-160m
+0
+23Layer
+Pythia-410m
+0
+15Layer
+Pythia-1b
+0
+23
+Latent
+Layer
+Pythia-1.4b
+Figure 2: Heatmaps of the distributions of latent activations over layers when aggregating over 10
+million tokens from the test set. Here, we plot the distributions for MLSAEs trained on Pythia models
+with an expansion factor of R = 64 and sparsity k = 32. The latents are sorted in ascending order of
+the expected value of the layer index (Eq. 10).
+0
+11Layer
+Pythia-160m
+0
+23Layer
+Pythia-410m
+0
+15Layer
+Pythia-1b
+0
+23
+Latent
+Layer
+Pythia-1.4b
+Figure 3: Heatmaps of the distributions of latent activations over layers for a single example prompt.
+Here, we plot the distributions for MLSAEs trained on Pythia models with an expansion factor of
+R = 64 and sparsity k = 32. The example prompt is “When John and Mary went to the store, John
+gave” (Wang et al., 2022). We exclude latents with maximum activation below1 × 10−3 and sort
+latents in ascending order of the expected value of the layer index (Eq. 10).
+3
+
+====================================================================================================
+2501.17727_automated_interpretability_metrics_do_not_distinguish_trained_and_random_transformers_chunk_001.pdf
+====================================================================================================
+AUTOMATEDINTERPRETABILITYMETRICSDONOT
+DISTINGUISHTRAINED ANDRANDOMTRANSFORMERS
+Thomas Heap
+University of Bristol
+Bristol, UK
+thomas.heap@bristol.ac.uk
+Tim Lawson
+University of Bristol
+Bristol, UK
+Lucy Farnik
+University of Bristol
+Bristol, UK
+Laurence Aitchison
+University of Bristol
+Bristol, UK
+ABSTRACT
+Sparse autoencoders (SAEs) are widely used to extract sparse, interpretable latents
+from transformer activations. We test whether commonly used SAE quality metrics
+and automatic explanation pipelines can distinguish trained transformers from ran-
+domly initialized ones (e.g., where parameters are sampled i.i.d. from a Gaussian).
+Over a wide range of Pythia model sizes and multiple randomization schemes, we
+find that, in many settings, SAEs trained on randomly initialized transformers pro-
+duce auto-interpretability scores and reconstruction metrics that are similar to those
+from trained models. These results show that high aggregate auto-interpretability
+scores do not, by themselves, guarantee that learned, computationally relevant
+features have been recovered. We therefore recommend treating common SAE
+metrics as useful but insufficient proxies for mechanistic interpretability and argue
+for routine randomized baselines and targeted measures of feature ‘abstractness.’
+1 INTRODUCTION
+Sparse autoencoders (SAEs) are a popular tool in mechanistic interpretability research, with the aim
+of disentangling the internal representations of neural networks by learning sparse, interpretable
+features from network activations (Elhage et al., 2022; Sharkey et al., 2022; Cunningham et al., 2023;
+Bricken et al., 2023). An autoencoder with a high-dimensional hidden layer is trained to reconstruct
+activations while enforcing sparsity (Gao et al., 2024; Templeton et al., 2024; Lieberum et al., 2024),
+with the aim of discovering the underlying concepts or ‘features’ learned by the network (Park
+et al., 2023; Wattenberg and Vi´egas, 2024). Developing better SAEs relies on quantitative evaluation
+metrics like auto-interpretability scores that measure agreement between generated explanations and
+activation patterns (Bills et al., 2023; Paulo et al., 2024; Karvonen et al., 2024a).
+For an interpretability method to be considered robust, its evaluation metrics should distinguish
+features learned through training from artifacts arising from the data or model architecture. A
+key sanity check is therefore to compare the method’s output on a trained model against a strong
+null model, such as one with randomly initialized weights (Adebayo et al., 2020). We apply this
+sanity check to SAEs and find that several common quantitative metrics do not always clearly
+distinguish between the trained and randomized settings. In particular, we found that SAEs trained on
+transformers with random parameters can yield latents with auto-interpretability scores (Bills et al.,
+2023; Paulo et al., 2024) that are surprisingly similar to those from a fully trained model.
+This result raises important questions about what we can glean from applying these metrics of SAE
+quality. High auto-interpretability scores alone do not guarantee that an SAE has identified complex,
+learned computations. Instead, such scores may sometimes reflect simpler statistical properties of
+the training data (Dooms and Wilhelm, 2024) or architectural inductive biases that are present even
+without training. Indeed, one could argue that a randomly initialized network still performs a basic
+form of computation, such as preserving or amplifying the sparse structure of its inputs (Section 4).
+From this perspective, SAEs might faithfully interpret this simple, inherent computation.
+1
+arXiv:2501.17727v2  [cs.LG]  27 Jan 2026
+While some SAE features from trained models clearly arise from learned computation, the commonly
+used aggregate metrics are often insufficient for determining whether a given SAE has learned these
+more complex features. These results have important implications for mechanistic interpretability
+research. In particular, we suggest that more rigorous methods to distinguish between artifacts and
+genuinely learned computations are needed, and that interpretability techniques should be carefully
+validated against appropriate null models.
+Finally, we speculate about why these patterns might emerge. At a high level, there are two hypotheses:
+(1) the input data already exhibits superposition, and randomly initialized neural networks largely
+preserve this superposition; and (2) randomly initialized neural networks amplify or even introduce
+superposed structure to the input data (e.g., given dense input generated i.i.d. from a Gaussian).
+We present toy models to demonstrate the plausibility of these hypotheses in Section 4 but defer
+conclusions as to the mechanism responsible to future work.
+2 RELATEDWORK
+Sparse dictionary learningUnder a different name, ‘superposition’ in visual data is one of the
+foundational observations of computational neuroscience. Olshausen and Field (1996; 1997) showed
+that the receptive fields of simple cells in the mammalian visual cortex can be explained as a result
+of sparse coding, i.e., representing a relatively large number of signals (sensory information) by
+simultaneously activating a small number of elements (neurons). Coding theory offers a perspective
+on efforts to extract the ‘underlying signals’ responsible for neural network activations (Marshall and
+Kirchner, 2024).
+Sparse dictionary learning (SDL) approximates a set of input vectors by linear combinations of a
+relatively small number of learned basis vectors. The learned basis is usually overcomplete: it has a
+greater dimension than the inputs. SDL algorithms include Independent Component Analysis (ICA),
+which finds a linear representation of the data such that the components are maximally statistically
+independent (Bell and Sejnowski, 1995; Hyv¨arinen and Oja, 2000). Sparse autoencoders (SAEs) are
+a simple neural network approach (Lee et al., 2006; Ng, 2011; Makhzani and Frey, 2014). Typically,
+an autoencoder with a single hidden layer that is many times larger than the input activation vectors
+is trained with an objective that imposes or incentivizes sparsity in its hidden layer activations to try
+to find this structure. Alatentis a single neuron (dimension) in the autoencoder’s hidden layer.
+Mechanistic interpretabilityRecently, it has become common to understand ‘features’ or concepts
+in language models as low-dimensional subspaces of internal model activations (Park et al., 2023;
+Wattenberg and Vi´egas, 2024; Engels et al., 2024). If such sparse or ‘superposed’ structure exists,
+we expect to be able to ‘intervene on’ or ‘steer’ the activations, i.e., to modify or replace them to
+express different concepts and so influence model behavior (Meng et al., 2022; Zhang and Nanda,
+2023; Heimersheim and Nanda, 2024; Makelov, 2024; O’Brien et al., 2024).
+SAEs are a popular approach for discovering features, where one typically trains a single autoencoder
+to reconstruct the activations of a single neural network layer, e.g., the transformer residual stream
+(Sharkey et al., 2022; Cunningham et al., 2023; Bricken et al., 2023). Many SAE architectures
+have been suggested, which commonly vary the activation function applied after the linear encoder
+(Makhzani and Frey, 2014; Gao et al., 2024; Rajamanoharan et al., 2024b; Lieberum et al., 2024).
+SAEs have also been trained with different objectives (Braun et al., 2024; Farnik et al., 2025) and
+applied to multiple layers simultaneously (Yun et al., 2021; Lawson et al., 2024; Lindsey et al., 2024).
+Besides reconstruction errors and preservation of the underlying model’s performance, SAEs have
+been evaluated according to whether they capture specific concepts (Gurnee et al., 2023; Gao et al.,
+2024) or factual knowledge (Huang et al., 2024; Chaudhary and Geiger, 2024), and whether these
+can be used to ‘unlearn’ concepts (Karvonen et al., 2024b).
+Automatic neuron descriptionSAEs often learn tens of thousands of latents, which are infeasible
+to describe by hand. Yun et al. (2021) find the tokens that maximally activate a dictionary element
+from a text dataset and manually inspect activation patterns. Instead, researchers typically collect
+latent activation patterns over a text dataset and prompt a large language model to explain them (e.g.
+Bills et al., 2023; Foote et al., 2023). These methods have been widely adopted (e.g. Cunningham
+et al., 2023; Bricken et al., 2023; Gao et al., 2024; Templeton et al., 2024; Lieberum et al., 2024).
+2
+Bills et al. (2023) generate an explanation for the activation patterns of a language-model neuron over
+examples from a dataset, simulate the patterns based on the explanation, and score the explanation
+by comparing the observed and simulated activations. This method is commonly known as auto-
+interpretability (as in self-interpreting). Paulo et al. (2024) introduce classification-based measures of
+the fidelity of automatic descriptions that are inexpensive to compute relative to simulating activation
+patterns and an open-source pipeline to compute these measures. Choi et al. (2024) use best-of- k
+sampling to generate multiple explanations based on different subsets of the examples that maximally
+activate a neuron. Importantly, they fine-tune Llama-3.1-8B-Instruct on the top-scoring explanations
+to obtain inexpensive ‘explainer’ and ‘simulator’ models.
+PolysemanticityLecomte et al. (2024) noted that neurons may become polysemantic incidentally.
+A polysemantic neuron (basis dimension) of a network layer represents multiple interpretable concepts
+(Elhage et al., 2022; Scherlis et al., 2023); unsurprisingly, individual neurons in a randomly initialized
+network may be polysemantic. By contrast, our work studiessuperposition(Elhage et al., 2022;
+Chan, 2024), which pertains to the representations learned across a whole network layer as opposed
+to any individual neuron. In particular, superposition allows a network layer as a whole to represent a
+larger number of (sparse) features than the layer has (dense) neurons by sparse coding (only a few
+concepts are active at a time, i.e., a given token position).
+Training only the embeddingsZhong and Andreas (2024) showed that transformers learn sur-
+prising algorithmic capabilities when only the embeddings are trained and no other parameters.
+These results demonstrate that the behavior of a randomly initialized transformer can be shaped to a
+surprising extent by training only a few parameters. However, our setting is very different: besides
+considering SAEs, we randomizeallthe parameters, including the embeddings, in our ‘Step-0’ and
+‘Re-randomized incl. embeddings’ variants. Our ‘Re-randomized excl. embeddings’ variant uses
+pre-trained embeddings, but we do not train those embeddings with fixed, randomized weights.
+Instead, we freeze the pre-trained embeddings and randomize the other weights (Section 3).
+Random transformers for board gamesKarvonen et al. (2024c) found that SAEs were consid-
+erably better at extracting meaningful structure from chess games using pre-trained transformers,
+as opposed to those with random weights. However, the data from board games is wildly different
+from language data. In particular, there is reason to expect that language is sparse (e.g., a particular
+concept such as ‘serendipitous’ appears only rarely), and that this sparse structure is ‘aligned’ with
+conceptual meaning. In contrast, in board games, this is not necessarily true: a useful concept such as
+a knight fork does not necessarily turn up sparsely in board games.
+Random one-layer transformersBricken et al. (2023) found that auto-interpretability scores
+discriminated effectively between random and trained one-layer transformers. Similarly, we found
+that auto-interpretability scores for randomized models were relatively low for smaller models (e.g.,
+Pythia-70m) but that the gap was narrowed for larger models (e.g., Pythia-6.9b).
+3 RESULTS
+We trained per-layer SAEs on the residual stream activation vectors of transformer language models
+from the Pythia suite, with between 70M and 7B parameters (Biderman et al., 2023). We compared
+SAEs trained on different variants of the underlying transformers:
+•Trained:The usual, trained model.
+• Re-randomized incl. embeddings:All the model parameters, including the embeddings,
+are re-initialized by sampling Gaussian noise with mean and variance equal to the values for
+each of the original, trained weight matrices.
+• Re-randomized excl. embeddings:As above, except the embedding and unembedding
+weight matrices are not re-initialized, i.e., are the same as the original, trained model.
+• Step-0:For Pythia models, the step0 revisions are available, which are the original model
+weights at initialization, i.e., before any learning (Biderman et al., 2023).
+• Control:The original, trained model, except where the input token embeddings are replaced
+at inference time by sampling i.i.d. standard Gaussian noise for each token, such that
+3
+
+====================================================================================================
+2502.04878_sparse_autoencoders_do_not_find_canonical_units_chunk_001.pdf
+====================================================================================================
+Published as a conference paper at ICLR 2025
+SPARSE AUTOENCODERS DO NOT FIND CANONICAL
+UNITS OF ANALYSIS
+Patrick Leask∗
+Department of Computer Science
+Durham University
+patrickaaleask@gmail.com
+Bart Bussmann∗
+Independent
+bartbussmann@gmail.com
+Michael Pearce
+Independent
+Joseph Bloom
+Decode Research
+Curt Tigges
+Decode Research
+Noura Al Moubayed
+Department of Computer Science
+Durham University
+Lee Sharkey
+Apollo Research
+Neel Nanda
+ABSTRACT
+A common goal of mechanistic interpretability is to decompose the activations of
+neural networks into features: interpretable properties of the input computed by
+the model. Sparse autoencoders (SAEs) are a popular method for finding these
+features in LLMs, and it has been postulated that they can be used to find acanon-
+ical set of units: a unique and complete list of atomic features. We cast doubt
+on this belief using two novel techniques: SAE stitching to show they are in-
+complete, and meta-SAEs to show they are not atomic. SAE stitching involves
+inserting or swapping latents from a larger SAE into a smaller one. Latents from
+the larger SAE can be divided into two categories: novel latents, which improve
+performance when added to the smaller SAE, indicating they capture novel in-
+formation, and reconstruction latents, which can replace corresponding latents in
+the smaller SAE that have similar behavior. The existence of novel features in-
+dicates incompleteness of smaller SAEs. Using meta-SAEs - SAEs trained on
+the decoder matrix of another SAE - we find that latents in SAEs often decom-
+pose into combinations of latents from a smaller SAE, showing that larger SAE
+latents are not atomic. The resulting decompositions are often interpretable; e.g.
+a latent representing “Einstein” decomposes into “scientist”, “Germany”, and “fa-
+mous person”. Even if SAEs do not find canonical units of analysis, they may
+still be useful tools. We suggest that future research should either pursue differ-
+ent approaches for identifying such units, or pragmatically choose the SAE size
+suited to their task. We provide an interactive dashboard to explore meta-SAEs:
+https://metasaes.streamlit.app/
+1 I NTRODUCTION
+Mechanistic interpretability aims to reverse-engineer neural networks into human-interpretable al-
+gorithms (Olah et al., 2020; Meng et al., 2022; Geva et al., 2023; Nanda et al., 2023; Elhage et al.,
+2021). A key challenge of mechanistic interpretability is identifying the correct units of analysis —
+fundamental components that can be individually understood and collectively explain the network’s
+function. Ideally, these units would be unique, with no variations (Bricken et al., 2023); complete,
+encompassing all necessary features (Elhage et al., 2022); andatomic or irreducible, indivisible into
+smaller components (Engels et al., 2024). We refer to a set of units with all of these properties as
+canonical.
+Initially, researchers hoped that individual MLP neurons (Meng et al., 2022; Olah et al., 2020) and
+attention heads (Wang et al., 2022; Olsson et al., 2022) could serve as these units. However, these
+∗These authors contributed equally to this work.
+1
+arXiv:2502.04878v1  [cs.LG]  7 Feb 2025
+Published as a conference paper at ICLR 2025
+Figure 1: Decomposition of an SAE latent representing “Einstein” into a set of interpretable meta-
+latents. The edges connecting the nodes indicate shared activation by a meta-latent, with thicker
+lines representing stronger connections. It demonstrates the ability of meta-SAEs to uncover the
+underlying compositional structure of SAE latents, revealing how a complex concept can be rep-
+resented as a sparse combination of meta-latents. We built a dashboard where you can explore all
+meta-latents: https://metasaes.streamlit.app
+proved insufficient for interpretability due to polysemanticity, where a single neuron responds to
+multiple unrelated concepts (Olah et al., 2020; Elhage et al., 2022).
+Recently, sparse autoencoders (SAEs) have emerged as a promising alternative by decomposing the
+activations of LLMs into a dictionary of interpretable and monosemantic features (Bricken et al.,
+2023; Cunningham et al., 2023). A key hyperparameter when training SAEs is the dictionary size,
+i.e. number of latent units. Previous work conjectured that SAEs might identify a set of “true
+features” with sufficient dictionary size (Bricken et al., 2023), i.e. the canonical features that are the
+goal of much mechanistic interpretability research.
+One challenge to the theory that SAEs identify a canonical set of units is the phenomenon offeature
+splitting, where latents from smaller SAEs “split” into multiple, more fine-grained latents in larger
+SAEs (Bricken et al., 2023). For example, Bricken et al. (2023) find a base64 feature that splits
+into three features in a larger SAE: activating on letters, digits, and encoded ASCII in base64 text.
+Furthermore, Templeton (2024) finds that a larger SAE has latents that activate on certain specific
+individual chemical elements that a smaller SAE did not represent. Currently, the effect of dictionary
+size on the features has not been systematically studied, in part because we lack good methods to
+compare latents found in SAEs of different sizes.
+To better understand how SAEs of different sizes capture features, we develop a method called
+SAE stitching. When stitching SAEs, we systematically swap clusters of latents between SAEs
+of different dictionary sizes based on their cosine similarity. Through this method, we observe that
+larger SAEs learn both more fine-grained versions of latents found in smaller SAEs, but also entirely
+novel latents. The existence of novel latents suggests that the reconstruction error of smaller SAEs
+is partially due to missing out information altogether, not just imperfect approximations to features
+or overly coarse latents, indicating incompleteness.
+Contrary to the story of feature splitting, we observed that some reconstruction latents had split
+from multiple latents in the smaller SAE, indicating those latents were composing into more com-
+plex latents. Previous work has predicted that the sparsity penalty incentivizes latents to represent
+composed features, even if they are independent (Wattenberg & Vi´egas, 2024; Bricken et al., 2023;
+Anders et al., 2024). For instance, consider a neural network that represents color and shape fea-
+2
+Published as a conference paper at ICLR 2025
+Figure 2: Example of composition of latents in SAEs of different sizes. The smaller SAE has six
+latents, three of which reconstruct shape features, and three of which reconstruct color features.
+Reconstructing a shape of a specific color requires two active latents (e.g. blue and square). On the
+other hand, the larger SAE has nine latents, each of which reconstructs a different color and shape
+combination. In the larger SAE, only a single active latent is required to reconstruct the colored
+shape (e.g. blue square). The sparsity penalty incentivizes larger SAEs to learn compositions of
+latents rather than atomic latents.
+tures, each with three values (red/green/blue and circle/square/triangle). A small SAE might learn a
+latent for each value. A large SAE, however, might learn latents for all 9 color-shape combinations
+(i.e. blue square) instead of the 6 fundamental features (Smith, 2024). The large SAE can represent
+this is sparser as only one latent activates per input rather than two, see Figure 2.
+To investigate this, we introduce meta-SAEs, which are SAEs trained to find sparse decompositions
+of the decoder directions of another SAE. These decompositions are often interpretable, e.g. a la-
+tent representing “Einstein” decomposes into meta-latents representing “scientist”, “Germany”, and
+“prominent figures”, among others (see Figure 1). This shows that latents are often notatomic, espe-
+cially in larger SAEs. We find that meta-latents are similar to latents in smaller SAEs, demonstrating
+that latents from larger SAEs can be interpreted as the composition of latents from smaller SAEs.
+In summary, our contributions are:
+1. SAE stitching, as a method for comparing latents across different sizes of SAE. Latents in
+a larger SAE are either novel latents, missing in smaller SAEs, or reconstruction latents,
+similar to some latents in smaller SAEs.
+2. Meta-SAEs, as an approach for decomposing the decoder directions of SAEs into inter-
+pretable, monosemantic meta-latents.
+Our empirical results suggest that simply training larger SAEs is unlikely to result in a canonical set
+of units for all mechanistic interpretability tasks, and that the choice of dictionary size is subjective.
+We suggest taking a pragmatic approach to applying SAEs to mechanistic interpretability tasks,
+trying SAEs of several widths to see which is best suited. We are uncertain whether canonical units
+of analysis exist, but our results suggest that alternative approaches should be explored.
+2 S PARSE AUTOENCODERS
+Sparse dictionary learning is the problem of finding a decomposition of a signal that is both sparse
+and overcomplete (Olshausen & Field, 1997). Lee et al. (2007) initially applied the sparsity con-
+straint to deep belief networks, with SAEs later being applied to the reconstruction of neural network
+activations (Bricken et al., 2023; Cunningham et al., 2023). In the context of large language models,
+SAEs decompose model activations x ∈ Rn into sparse linear combinations of learned directions,
+which are often interpretable and monosemantic.
+An SAE consists of an encoder and a decoder:
+f (x) := σ(Wencx + benc), (1)
+ˆx(f ) := Wdecf + bdec. (2)
+3
+

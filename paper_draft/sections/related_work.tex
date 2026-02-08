@@ -1,0 +1,12 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\para{Superposition and linear concept geometry.} Superposition analyses argue that many concepts are encoded in overlapping directions rather than clean axes \cite{elhage2022superposition}. The linear representation hypothesis formalizes when a concept can be treated as a direction under specific inner products \cite{park2024linear}. Our work tests this tension on a concrete compound noun and asks whether a distinct direction is detectable in practice.
+
+\para{Compositionality of phrase representations.} Probing studies show that phrase embeddings are often predictable from constituent embeddings, suggesting local compositional structure \cite{liu2022groundup}. We extend this idea to compound nouns and connect it to feature-level localization evidence.
+
+\para{Sparse autoencoders and feature non-canonicality.} Large \sae models recover many interpretable features \cite{gao2024sae}, but later work shows that \sae latents are not canonical and can be decomposed further \cite{leask2025sae}. Automated interpretability metrics can also fail to separate trained from random transformers \cite{heap2025metrics}. These findings motivate caution when interpreting a single latent as an atomic concept.
+
+\para{Causal tracing and patching.} Activation patching is sensitive to corruption and localization choices, and best practices emphasize careful controls \cite{zhang2023patching}. We use a conservative patching setup and report effect sizes with uncertainty.
+
+\para{Cross-layer and multi-layer features.} Multi-layer \sae approaches highlight that features can distribute across depth rather than reside at one layer \cite{lawson2025mlsae}. This provides context for our single-layer study and motivates multi-layer follow-ups.

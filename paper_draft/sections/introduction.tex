@@ -1,0 +1,22 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Compound concepts are a stress test for mechanistic interpretability. Many tools assume that a concept corresponds to a direction in the \resid, yet a compound like \compound plausibly combines multiple constituents rather than occupying a single feature.
+
+\para{Why this matters.} Concept localization and editing are increasingly used for steering and safety interventions in LLMs. If compounds are not atomic, then single-direction edits may misfire or overfit to specific prompts. Understanding whether compound nouns are stored as distinct directions or as compositions is therefore a practical question, not just a theoretical one.
+
+\para{What is missing.} Prior work on superposition and polysemanticity argues against clean, orthogonal concept directions \cite{elhage2022superposition}. Compositionality probes show that phrase representations are often predictable from constituent embeddings \cite{liu2022groundup}. At the same time, \sae features are widely used for localization but are not guaranteed to be canonical units \cite{gao2024sae,leask2025sae}. We still lack direct tests on concrete compound nouns that combine feature analysis, causal tracing, and compositional probes in a single setup.
+
+\para{Our approach.} We analyze \gpttwo with a pretrained \sae at layer 6 and compare three signals: top-$k$ feature overlap, causal patching effects, and compositional predictability of compound embeddings. We construct compound, \washing-only, and \machine-only contexts from \wikitext and add synthetic compound prompts because the corpus contains no literal \compound examples. \Figref{fig:sae_overlap} and \Figref{fig:causal_patching} summarize the main analyses.
+
+\para{Quantitative preview.} We observe low feature overlap between compound and constituents (Jaccard 0.11--0.14) and weak causal patching effects ($\Delta$logit $-0.019 \pm 0.109$), but a strong compositionality signal: a ridge probe predicts compound embeddings from constituents with cosine 0.996 and 58.4\% lower MSE than a head-noun baseline (5.19 vs. 12.49).
+
+In summary, we make the following contributions:
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item We propose a focused testbed for compound-noun localization that combines \sae analysis, causal patching, and compositionality probes.
+    \item We conduct the first end-to-end analysis of \compound in \gpttwo with a pretrained \sae and controlled contexts.
+    \item We show that \compound is highly predictable from constituents even when \sae feature overlap is low.
+    \item We document limitations of single-layer localization for compounds and outline practical next steps.
+\end{itemize}
+
+\para{Paper organization.} \Secref{sec:related_work} reviews prior work, \secref{sec:methodology} details the setup, \secref{sec:results} presents results, and \secref{sec:discussion} discusses implications and limits.

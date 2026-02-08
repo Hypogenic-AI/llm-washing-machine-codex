@@ -1,0 +1,698 @@
+You are an academic paper writer. Generate a complete NEURIPS style paper
+based on the experiment results provided.
+
+════════════════════════════════════════════════════════════════════════════════
+                         IMPORTANT: BEFORE YOU START
+════════════════════════════════════════════════════════════════════════════════
+
+Before writing any content, you MUST complete these steps:
+
+1. READ THE SKILL: Review the paper-writer skill at templates/skills/paper-writer/SKILL.md
+2. READ THE STYLE GUIDE: Study templates/paper_writing/lab_style_guide.md carefully
+3. REVIEW EXAMPLES: Browse paper_examples/ for formatting and language patterns:
+   - Look at sections/1.introduction.tex for language style
+   - Look at tables/*.tex for table formatting
+   - Look at commands/*.tex for macro usage
+4. USE COMMAND TEMPLATES: Copy templates/paper_writing/commands/ to paper_draft/commands/
+
+CRITICAL: Reference example papers for FORMATTING and LANGUAGE STYLE only.
+Do NOT copy content, phrasing, or narrative structure from the example papers.
+The examples are in a different research domain - focus only on presentation style.
+
+════════════════════════════════════════════════════════════════════════════════
+                            EXPERIMENT REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+# REPORT: Where Is &#34;Washing Machine&#34; Stored in LLMs?
+
+## 1. Executive Summary
+We tested whether the compound concept &#34;washing machine&#34; is represented as a distinct direction in the residual stream or emerges from constituent features (&#34;washing&#34; + &#34;machine&#34;) in a GPT-2 small model with sparse autoencoder (SAE) features.
+Key findings: SAE top-feature overlap between compound and constituent contexts was low (Jaccard 0.11–0.14), while a compositionality probe strongly predicted compound embeddings from constituent embeddings (cosine 0.996). Causal patching from &#34;washing machine&#34; into &#34;washing process&#34; did not increase the logit for &#34;machine&#34; (mean Δlogit = -0.019), suggesting weak localized causal dependence at the tested layer.
+Practical implication: Compound noun behavior appears more compositional in representation geometry than as a single, strong, causal feature at one layer; mechanistic interventions should consider composition across features and layers rather than assuming a single direction.
+
+## 1.5. Research Question &amp; Hypothesis
+**Research question**: Where is the compound concept &#34;washing machine&#34; stored in LLMs—distinct residual direction or composition of constituent features?
+**Hypothesis**: The compound does not correspond to a unique orthogonal direction; it emerges from constituent features.
+
+## 2. Goal
+**Hypothesis**: The compound concept &#34;washing machine&#34; is not stored as a distinct, orthogonal residual-stream direction; instead, constituent features (&#34;washing&#34;, &#34;machine&#34;) compose to yield compound meaning.
+**Importance**: This impacts how we localize concepts, steer models, and interpret feature-level interventions in LLMs.
+**Problem solved**: Tests whether a concrete compound noun maps to a single feature vs. compositional structure.
+**Expected impact**: More realistic assumptions about feature localization and composition in interpretability work.
+
+## 2.5. Literature Review Summary
+- Superposition and polysemanticity (Elhage et al., 2022) imply many concepts will not have clean, orthogonal directions.
+- Compositionality probes (Liu &amp; Neubig, 2022) show phrase representations are often predictable from constituents.
+- SAE work (Gao et al., 2024; Leask et al., 2025) indicates learned features are not canonical units, motivating caution when interpreting a single latent as a concept.
+- Activation patching best practices (Zhang &amp; Nanda, 2023) highlight sensitivity to localization hyperparameters.
+- Linear representation formalization (Park et al., 2024) provides a framework for testing when directions are meaningful.
+
+These findings motivate combining SAE analysis, causal tracing, and compositionality probing to test whether a compound noun behaves as an atomic concept or a composition.
+
+## 3. Data Construction
+
+### Dataset Description
+- **Primary source**: WikiText-2 raw (`datasets/wikitext_2_raw`)
+- **Size**: train 36,718; validation 3,760; test 4,358 records
+- **Collection**: Pre-downloaded from HuggingFace; raw text lines
+- **Bias/limitations**: Many empty lines; sparse coverage of the specific compound &#34;washing machine&#34; in the corpus.
+
+### Example Samples
+```text
+Sample 1: &#34;Senjō no Valkyria 3 : Unrecorded Chronicles ...&#34;
+Sample 2: &#34;The game began development in 2010 ...&#34;
+Sample 3: &#34;As with previous Valkyria Chronicles games, Valkyria Chronicles III is ...&#34;
+```
+
+### Data Quality
+- Missing or empty lines: train 12,951; validation 1,299; test 1,467
+- Mean length: train 296.7; validation 303.8; test 295.0 characters
+- Min length: 0; max length: 3,863 (train)
+- Validation checks: non-empty filtering; basic length statistics saved in `results/data_stats.json`
+
+### Preprocessing Steps
+1. Loaded dataset from disk and concatenated splits.
+2. Filtered empty lines and stripped whitespace for context search.
+3. Extracted three context sets:
+   - Compound: lines containing &#34;washing machine&#34;
+   - Washing-only: &#34;washing&#34; without &#34;machine&#34;
+   - Machine-only: &#34;machine&#34; without &#34;washing&#34;
+4. Because WikiText-2 contained no &#34;washing machine&#34; strings, added synthetic compound sentences (templated) to ensure controlled compound contexts.
+
+### Train/Val/Test Splits
+- Used all splits for context extraction (no training in the ML sense).
+- For compositionality probe, used an 80/20 random split of extracted bigram samples.
+
+## 4. Experiment Description
+
+### Methodology
+
+#### High-Level Approach
+Combine SAE feature analysis, causal patching, and a compositionality probe to test whether compound meanings are represented as a distinct latent or as a composition of constituent features.
+
+#### Why This Method?
+- SAE feature activations test for latent features correlated with the compound.
+- Causal patching tests whether transferring compound activations causes compound-specific predictions.
+- Compositionality probes quantify how well compound representations are predicted from constituents.
+
+### Implementation Details
+
+#### Tools and Libraries
+- PyTorch 2.10.0+cu128
+- TransformerLens 2.15.4
+- Transformers 4.57.6
+- Datasets 4.5.0
+- scikit-learn 1.8.0
+- blobfile 3.2.0
+- matplotlib 3.10.8
+
+#### Algorithms/Models
+- **Model**: GPT-2 small (`gpt2`) loaded via TransformerLens
+- **SAE**: Pretrained SAE weights from OpenAI `sparse_autoencoder` (v5 32k) for layer 6, resid_post_mlp
+
+#### Hyperparameters
+| Parameter | Value | Selection Method |
+|-----------|-------|------------------|
+| SAE layer | 6 | Prior examples in SAE repo |
+| SAE location | resid_post_mlp | Standard for SAE features |
+| top_k | 50 | Common feature overlap evaluation |
+| max_contexts | 200 | Dataset size limit |
+| ridge alpha | 1.0 | Default baseline |
+
+#### Training Procedure or Analysis Pipeline
+1. Extract contexts from WikiText-2 and synthetic compound prompts.
+2. Run GPT-2 with cache; collect residual activations at layer 6.
+3. Encode activations with SAE to obtain latent features.
+4. Compute top-k feature overlap and cosine similarities.
+5. Run causal patching at layer 6.
+6. Train ridge regression probe predicting compound embeddings from constituent embeddings.
+
+### Experimental Protocol
+
+#### Reproducibility Information
+- Runs: single deterministic run
+- Random seed: 42
+- Hardware: NVIDIA GeForce RTX 3090 (24GB), CUDA 12.8
+- Runtime: a few minutes for full pipeline
+
+#### Evaluation Metrics
+- **Top-k Jaccard overlap**: measures shared SAE features across conditions
+- **Cosine similarity**: compares mean latent vectors between conditions
+- **Causal patching logit delta**: effect on predicting &#34;machine&#34; after patching
+- **Ridge probe MSE / cosine**: compositional predictability of compound embedding
+
+### Raw Results
+
+#### Tables
+| Metric | Value |
+|--------|-------|
+| Compound–washing Jaccard | 0.136 |
+| Compound–machine Jaccard | 0.111 |
+| Compound–union Jaccard | 0.129 |
+| Compound unique fraction (top-50) | 0.68 |
+| Cosine(compound, washing) | 0.578 |
+| Cosine(compound, machine) | 0.041 |
+| Causal patching Δlogit | -0.019 ± 0.109 (n=5) |
+| Probe MSE (ridge) | 5.19 |
+| Probe MSE (w2 baseline) | 12.49 |
+| Probe cosine (ridge) | 0.996 |
+
+#### Visualizations
+- `results/plots/sae_overlap.png`
+- `results/plots/causal_patching.png`
+
+#### Output Locations
+- Metrics JSON: `results/metrics.json`
+- Data stats: `results/data_stats.json`
+- Environment: `results/env.json`
+- Plots: `results/plots/`
+
+## 5. Result Analysis
+
+### Key Findings
+1. **Low SAE feature overlap**: Compound top-k features overlap weakly with washing or machine alone (Jaccard ~0.11–0.14), and 68% of top-50 compound features were unique relative to constituent top-50 sets.
+2. **Compositionality probe success**: Ridge regression predicts compound embeddings from constituents far better than a baseline using only w2 (MSE 5.19 vs 12.49, cosine 0.996), indicating strong compositional structure.
+3. **Weak causal patching effect**: Patching compound residuals into &#34;washing process&#34; did not increase the logit for &#34;machine&#34; (mean Δlogit -0.019), suggesting no strong single-layer causal trigger for &#34;machine&#34; at layer 6.
+
+### Hypothesis Testing Results
+- **Support**: The strong compositional probe result supports the hypothesis that compound meaning is compositional.
+- **Ambiguous**: The low SAE overlap could suggest a distinct compound feature, but the synthetic contexts and SAE non-canonicality make this inconclusive.
+- **Causal evidence**: Patch results do not show a clear compound-specific causal direction at the tested layer.
+
+### Comparison to Baselines
+- Probe outperforming w2 baseline suggests additive compositionality beyond simply copying the head noun.
+- SAE uniqueness should be interpreted cautiously due to small and synthetic compound sample size.
+
+### Visualizations
+- See `results/plots/sae_overlap.png` for overlap comparisons.
+- See `results/plots/causal_patching.png` for patching effect size.
+
+### Surprises and Insights
+- WikiText-2 contains no literal &#34;washing machine&#34; strings; synthetic prompts were required.
+- The compositionality probe indicates high predictability even when SAE overlap is low, highlighting that SAE features may be polysemantic or non-canonical.
+
+### Error Analysis
+- Limited compound samples (synthetic only) restrict ecological validity.
+- Washing-only contexts are rare in WikiText-2; only 10 usable latent samples were extracted.
+
+### Limitations
+- Single model (GPT-2 small) and single layer tested.
+- SAE features are not guaranteed to be canonical units.
+- Compound contexts are synthetic rather than natural corpus occurrences.
+- Patching uses a small set of templates (n=5 pairs).
+
+## 6. Conclusions
+
+### Summary
+Evidence from compositionality probing suggests compound embeddings are largely predictable from constituent embeddings, aligning with a compositional representation. SAE feature overlap and causal patching did not reveal a strong, unique compound feature at the tested layer.
+
+### Implications
+- **Practical**: Concept editing and steering should consider multi-feature and multi-layer composition instead of relying on a single direction.
+- **Theoretical**: Supports the view that compound meanings are constructed rather than stored as atomic residual directions.
+
+### Confidence in Findings
+Moderate. The compositionality signal is strong, but SAE and patching evidence is limited by data scarcity and synthetic contexts.
+
+## 7. Next Steps
+
+### Immediate Follow-ups
+1. Expand compound contexts using larger corpora (WikiText-103 or The Pile) to avoid synthetic prompts.
+2. Repeat SAE analysis across multiple layers and SAE types (single-layer vs multi-layer SAEs).
+
+### Alternative Approaches
+- Use Neuronpedia or Gemma Scope SAEs on newer open models with richer corpora.
+- Evaluate activation patching across multiple locations (attn_out, resid_mid, resid_post).
+
+### Broader Extensions
+- Compare compounds of varying compositionality (literal vs idiomatic) using CHIP.
+- Test multiple model families to check consistency of compound representation.
+
+### Open Questions
+- Are compound-specific features more detectable in larger models or later layers?
+- Do idiomatic compounds behave differently in SAE and patching analyses?
+
+## References
+- See `literature_review.md` and `resources.md` for primary papers and datasets.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                            RESEARCH PLAN
+════════════════════════════════════════════════════════════════════════════════
+
+# Planning
+
+## Motivation &amp; Novelty Assessment
+
+### Why This Research Matters
+Understanding how compound concepts (e.g., &#34;washing machine&#34;) are represented in LLMs is central to mechanistic interpretability and reliable concept-level interventions. If compound nouns are not stored as distinct directions, then steering, editing, and safety interventions that assume atomic directions may be miscalibrated. This work also informs compositional generalization and how meaning is built across layers.
+
+### Gap in Existing Work
+Prior work studies linear directions, superposition, and phrase compositionality, but direct tests on compound-noun concepts in residual streams are rare. SAE papers show features are not canonical and can be polysemantic, while compositionality probes focus on constituent predictability rather than feature localization for concrete compounds like &#34;washing machine&#34;.
+
+### Our Novel Contribution
+We directly test whether compound noun concepts correspond to distinct latent features or emerge from compositional interaction of constituent features, using SAE feature attribution and causal patching on real model activations.
+
+### Experiment Justification
+- Experiment 1: SAE feature activation analysis for &#34;washing&#34;, &#34;machine&#34;, and &#34;washing machine&#34; contexts to test whether a distinct compound feature exists.
+- Experiment 2: Causal tracing / activation patching to measure whether intervening on constituent features reproduces the compound concept effect without a dedicated compound feature.
+- Experiment 3: Compositionality probe predicting compound phrase embeddings from constituent embeddings to quantify compositional structure and compare with feature-localization evidence.
+
+## Research Question
+Where is the compound concept &#34;washing machine&#34; represented in LLMs: as a distinct direction/feature or as a composition of constituent features (&#34;washing&#34; + &#34;machine&#34;)?
+
+## Background and Motivation
+Mechanistic interpretability increasingly relies on concept directions and feature localization. However, superposition and polysemanticity suggest that not every concept corresponds to a unique direction. Compound nouns provide a concrete testbed for whether concept representations are atomic or compositional in residual streams.
+
+## Hypothesis Decomposition
+- H1: There is no single orthogonal residual-stream direction uniquely associated with &#34;washing machine&#34; across contexts.
+- H2: Activation patterns for &#34;washing machine&#34; can be approximated by combining constituent features (&#34;washing&#34; and &#34;machine&#34;).
+- H3: Interventions on constituent features reproduce behavioral effects similar to the compound without requiring a dedicated compound feature.
+
+## Proposed Methodology
+
+### Approach
+Use mechanistic interpretability tools (TransformerLens + SAE features) to analyze activations and causal impact for &#34;washing machine&#34; contexts. Combine SAE feature inspection with causal patching and compositionality probes.
+
+### Experimental Steps
+1. Data collection: Extract contexts containing &#34;washing&#34;, &#34;machine&#34;, and &#34;washing machine&#34; from WikiText-2; create matched control contexts. Rationale: Controlled contexts reduce confounds.
+2. SAE feature analysis: Use pretrained SAEs (openai/sparse_autoencoder) to obtain latent activations; identify top-activating features for each condition. Rationale: Test existence of a compound-specific latent.
+3. Causal tracing: Patch activations or SAE latents from constituent contexts into compound contexts (and vice versa). Rationale: Test whether constituent features are sufficient to induce compound behavior.
+4. Compositionality probe: Train linear/affine probes to predict compound phrase embedding from constituent embeddings. Rationale: Quantify compositional structure of phrase representations.
+
+### Baselines
+- Randomized model or shuffled activations baseline for SAE metrics.
+- Linear probe using only constituent embedding averages.
+- Single-layer SAE vs. multi-layer SAE features (if available).
+
+### Evaluation Metrics
+- SAE reconstruction loss and sparsity by condition.
+- Feature overlap metrics (Jaccard of top-k features) across conditions.
+- Causal effect size from patching (logit diff / probability change).
+- Probe reconstruction error (cosine distance / MSE).
+
+### Statistical Analysis Plan
+- Bootstrap confidence intervals for overlap and patching effects.
+- Paired t-tests or Wilcoxon signed-rank tests for condition comparisons.
+- Significance level α = 0.05 with FDR correction for multiple comparisons.
+
+## Expected Outcomes
+- Support hypothesis if compound contexts do not yield unique SAE features and if constituent feature patching reproduces compound effects.
+- Refute if a consistent, unique compound feature dominates and cannot be replicated by constituent features.
+
+## Timeline and Milestones
+- Resource review and setup: 0.5 hr
+- Data extraction and preprocessing: 0.5 hr
+- SAE analysis + patching: 1.5 hr
+- Probing experiments: 1.0 hr
+- Analysis + write-up: 1.0 hr
+
+## Potential Challenges
+- Pretrained SAE compatibility with target model and tokenizer.
+- Limited compound examples in WikiText-2.
+- Activation patching sensitivity to hyperparameters.
+
+## Success Criteria
+- Complete SAE and causal patching experiments with quantitative comparisons.
+- Clear statistical conclusion on presence/absence of compound-specific feature.
+- Reproducible code and documented results in REPORT.md.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          LITERATURE REVIEW
+════════════════════════════════════════════════════════════════════════════════
+
+# Literature Review
+
+## Research Area Overview
+This project sits at the intersection of mechanistic interpretability, representation geometry, and compositionality in language models. Key threads include: (1) whether concepts correspond to linear directions (linear representation hypothesis), (2) how superposition and polysemanticity complicate feature localization, (3) sparse autoencoders (SAEs) as a practical tool for extracting features, and (4) compositionality probes that test whether phrase representations are constructed from constituent representations.
+
+## Key Papers
+
+### Paper 1: Toy Models of Superposition
+- **Authors**: Nelson Elhage et al.
+- **Year**: 2022
+- **Source**: arXiv 2209.10652
+- **Key Contribution**: Introduces toy models showing superposition and polysemanticity as a consequence of sparse feature representations.
+- **Methodology**: Synthetic ReLU networks with sparse input features; analyze phase changes and feature geometry.
+- **Datasets Used**: Synthetic data (toy models)
+- **Results**: Demonstrates superposition, monosemantic vs. polysemantic features, and geometric structure of features.
+- **Code Available**: Yes (paper references a repo/colab)
+- **Relevance to Our Research**: Establishes why compound concepts may not correspond to single orthogonal directions.
+
+### Paper 2: Are Representations Built from the Ground Up?
+- **Authors**: Emmy Liu, Graham Neubig
+- **Year**: 2022
+- **Source**: arXiv 2210.03575
+- **Key Contribution**: Probes whether phrase representations are predictable from constituents (local compositionality).
+- **Methodology**: Affine/linear probes predicting parent phrase embeddings from child embeddings; evaluation on compositionality datasets.
+- **Datasets Used**: Penn Treebank phrases, CHIP idiom dataset
+- **Results**: Parent representations are predictable from constituents, but alignment with human compositionality judgments is weak.
+- **Code Available**: Yes (lm-compositionality repo)
+- **Relevance to Our Research**: Directly informs how compound concepts like “washing machine” might be built.
+
+### Paper 3: Towards Best Practices of Activation Patching
+- **Authors**: Fred Zhang, Neel Nanda
+- **Year**: 2023
+- **Source**: arXiv 2309.16042
+- **Key Contribution**: Systematic evaluation of activation patching variants and metrics.
+- **Methodology**: Compare corruption/patching strategies and evaluation metrics for causal tracing.
+- **Datasets Used**: Standard LM tasks and prompts (various localization tasks)
+- **Results**: Hyperparameter choices can change localization conclusions; provides best practices.
+- **Code Available**: Yes (paper linked)
+- **Relevance to Our Research**: Guides robust localization for concept features.
+
+### Paper 4: The Linear Representation Hypothesis and the Geometry of LLMs
+- **Authors**: Kiho Park, Yo Joong Choe, Victor Veitch
+- **Year**: 2024
+- **Source**: arXiv 2311.03658
+- **Key Contribution**: Formalizes what it means for concepts to be linear directions; connects to probing and steering.
+- **Methodology**: Counterfactual formalism; experiments on LLaMA-2.
+- **Datasets Used**: Model-internal evaluations with counterfactual pairs
+- **Results**: Demonstrates linear representations under a specific inner product.
+- **Code Available**: Yes (linked in paper)
+- **Relevance to Our Research**: Provides theoretical framing for “concept direction” claims.
+
+### Paper 5: Scaling and Evaluating Sparse Autoencoders
+- **Authors**: Leo Gao et al.
+- **Year**: 2024
+- **Source**: arXiv 2406.04093
+- **Key Contribution**: Training recipe for large SAEs and evaluation metrics.
+- **Methodology**: k-sparse autoencoders; scaling experiments; new quality metrics.
+- **Datasets Used**: GPT-2 / GPT-4 activations (token streams)
+- **Results**: Scaling laws; large SAEs recover more interpretable features.
+- **Code Available**: Yes (openai/sparse_autoencoder)
+- **Relevance to Our Research**: Practical path to extract “washing” and “machine” features.
+
+### Paper 6: Gemma Scope
+- **Authors**: Tom Lieberum et al.
+- **Year**: 2024
+- **Source**: arXiv 2408.05147
+- **Key Contribution**: Releases open SAEs for Gemma 2 across layers.
+- **Methodology**: JumpReLU SAEs on Gemma 2 layers; evaluation on standard SAE metrics.
+- **Datasets Used**: Gemma 2 pretraining data (token streams)
+- **Results**: Public SAE weights + Neuronpedia demo.
+- **Code Available**: Weights + demo; paper links to HuggingFace/Neuronpedia.
+- **Relevance to Our Research**: Ready-to-use SAEs for concept localization.
+
+### Paper 7: Residual Stream Analysis with Multi-Layer SAEs
+- **Authors**: Tim Lawson et al.
+- **Year**: 2025
+- **Source**: arXiv 2409.04185 (ICLR 2025)
+- **Key Contribution**: MLSAE approach for tracking features across layers.
+- **Methodology**: Train a single SAE on residual streams from all layers; analyze layer distributions.
+- **Datasets Used**: Transformer activation streams
+- **Results**: Latents often activate in layer-specific patterns; supports cross-layer analysis.
+- **Code Available**: Yes (linked in paper)
+- **Relevance to Our Research**: Helps track composition of “washing” + “machine” across depth.
+
+### Paper 8: Automated Interpretability Metrics Do Not Distinguish Trained and Random Transformers
+- **Authors**: Thomas Heap et al.
+- **Year**: 2025
+- **Source**: arXiv 2501.17727
+- **Key Contribution**: Shows SAE metrics can be misleading without random baselines.
+- **Methodology**: Train SAEs on random vs. trained Pythia models; compare metrics.
+- **Datasets Used**: Pythia activation streams
+- **Results**: Many SAE metrics fail to discriminate trained vs. random.
+- **Code Available**: Noted in paper
+- **Relevance to Our Research**: Emphasizes need for baselines when testing concept features.
+
+### Paper 9: Sparse Autoencoders Do Not Find Canonical Units of Analysis
+- **Authors**: Patrick Leask et al.
+- **Year**: 2025
+- **Source**: arXiv 2502.04878 (ICLR 2025)
+- **Key Contribution**: SAE features are not canonical/atomic; larger SAEs add novel latents.
+- **Methodology**: SAE stitching + meta-SAE analysis.
+- **Datasets Used**: Transformer activation streams
+- **Results**: Larger SAEs can decompose latents; highlights non-atomicity of features.
+- **Code Available**: Noted in paper
+- **Relevance to Our Research**: Warns against assuming single “washing machine” feature exists.
+
+## Common Methodologies
+- **Sparse Autoencoders (SAE)**: Used to extract sparse features in residual stream activations.
+- **Activation Patching / Causal Tracing**: Localizes where information is used in the network.
+- **Compositionality Probes**: Predict parent phrase representation from child representations.
+- **Linear Probing / Steering**: Tests for linear directions representing concepts.
+
+## Standard Baselines
+- Linear probes or affine composition functions
+- Randomized model baselines (random initialization or shuffled activations)
+- Single-layer SAEs vs. multi-layer SAEs
+- Control tasks with non-compositional phrases (idioms)
+
+## Evaluation Metrics
+- Reconstruction loss / normalized MSE (SAE)
+- Sparsity metrics (active latents per token)
+- Auto-interpretability scores (explanation alignment)
+- Compositionality reconstruction error (tree reconstruction error / cosine distance)
+
+## Datasets in the Literature
+- **Penn Treebank phrases**: Used for local composition prediction.
+- **CHIP dataset**: Human-annotated idiom compositionality scores.
+- **Large LM training corpora**: Token streams used for SAE training.
+
+## Gaps and Opportunities
+- Direct tests for compound noun concepts (e.g., “washing machine”) are rare.
+- SAE features are not guaranteed to be canonical; need better baselines and controls.
+- Few studies explicitly test whether compound concepts are compositional combinations in residual stream directions.
+
+## Recommendations for Our Experiment
+- **Recommended datasets**: CHIP for idioms/compounds, WikiText-2 for activation streams.
+- **Recommended baselines**: Randomized model baseline; single-layer SAE vs. MLSAE; linear probe for “washing” and “machine” separately.
+- **Recommended metrics**: SAE reconstruction + sparsity, probing accuracy for composed vs. atomic features, causal patching effect size.
+- **Methodological considerations**: Use activation patching best practices; avoid over-trusting SAE auto-interpretability metrics; compare features across layers.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          PAPER REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+Generate a complete academic paper with the following structure:
+
+1. TITLE
+   - Clear, specific, informative
+   - Should convey main finding or contribution
+
+2. ABSTRACT (150-250 words)
+   - Problem statement
+   - Approach
+   - Key results
+   - Significance
+
+3. INTRODUCTION
+   - Research problem and motivation
+   - Gap in existing work
+   - Our contribution (be specific)
+   - Paper organization
+
+4. RELATED WORK
+   - Organized by theme/approach
+   - Position our work relative to prior work
+   - Cite papers from literature review
+
+5. METHODOLOGY
+   - Clear description of approach
+   - Experimental setup
+   - Datasets used
+   - Evaluation metrics
+   - Baselines
+
+6. RESULTS
+   - Present results with tables and figures
+   - Statistical analysis
+   - Comparison to baselines
+   - Ablation studies (if applicable)
+
+7. DISCUSSION
+   - Interpretation of results
+   - Limitations
+   - Broader implications
+
+8. CONCLUSION
+   - Summary of contributions
+   - Key findings
+   - Future work
+
+9. REFERENCES
+   - BibTeX format
+   - All cited papers
+
+════════════════════════════════════════════════════════════════════════════════
+                          OUTPUT FORMAT
+════════════════════════════════════════════════════════════════════════════════
+
+Create a MODULAR LaTeX project with the following directory structure:
+
+paper_draft/
+├── main.tex              # Main file that imports all sections
+├── references.bib        # BibTeX references
+├── sections/
+│   ├── abstract.tex      # Abstract content
+│   ├── introduction.tex  # Introduction section
+│   ├── related_work.tex  # Related work section
+│   ├── methodology.tex   # Methodology section
+│   ├── results.tex       # Results section
+│   ├── discussion.tex    # Discussion section
+│   └── conclusion.tex    # Conclusion section
+├── figures/              # Directory for any generated figures
+├── tables/               # Directory for complex standalone tables
+└── appendix/             # Directory for appendix sections (if needed)
+
+INSTRUCTIONS:
+1. First, create the directory structure above (mkdir -p paper_draft/sections paper_draft/figures paper_draft/tables paper_draft/appendix)
+2. Write main.tex using the EXACT preamble for NEURIPS:
+
+   \documentclass{article}
+   \usepackage[final]{neurips_2025}  % NEURIPS style (neurips_2025.sty is in paper_draft/)
+   \usepackage[hidelinks]{hyperref}  % REQUIRED: clickable links
+   \usepackage{booktabs}  % REQUIRED: professional tables
+   \usepackage{graphicx}
+   \usepackage{amsmath,amssymb}
+
+   % Import command files
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+   % Use this bibliography style:
+   \bibliographystyle{plainnat}
+
+   - Use \input{sections/...} to include each section
+   - Use \bibliography{references} for references
+3. Write each section file with COMPLETE content (no placeholders)
+4. Each section file should include its \section{} command
+5. Write references.bib with all citations in BibTeX format
+6. After writing all files, compile the paper:
+   cd paper_draft && pdflatex -interaction=nonstopmode main.tex && bibtex main && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex
+
+This modular structure allows humans to easily:
+- Edit individual sections without navigating a large file
+- Track changes per section
+- Reuse sections across different paper versions
+
+════════════════════════════════════════════════════════════════════════════════
+                          QUALITY REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+- Academic tone throughout
+- All claims must be supported by data from the experiment report
+- Proper citations using \cite{} commands
+- Clear figures and tables with proper captions
+- NO placeholder text - every section must have real content
+- The paper MUST compile without errors
+- If compilation fails, debug and fix the LaTeX errors
+
+════════════════════════════════════════════════════════════════════════════════
+                          LAB WRITING STYLE
+════════════════════════════════════════════════════════════════════════════════
+
+Follow these lab-specific conventions to match our paper style:
+
+1. LANGUAGE STYLE:
+   - Use active voice: "We propose", "We examine", "We focus on"
+   - Be direct and confident: "Our main question is...", "We hypothesize that..."
+   - State things clearly and simply - prefer plain language over jargon
+   - Use bold questions as paragraph organizers: {\bf what is X?}
+   - Include specific quantitative claims: "8.97% over baseline"
+   - Avoid fancy wording: "utilize" → "use", "facilitate" → "help"
+
+2. INTRODUCTION STRUCTURE:
+   - Engaging hook (get to the point quickly)
+   - Problem importance
+   - Gap identification
+   - Your approach with method figure reference
+   - Quantitative preview of results
+   - Contribution bullets (3-4 items, action verbs)
+
+3. CONTRIBUTION LISTS:
+   \begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+       \item We propose...
+       \item We conduct...
+       \item We complement...
+   \end{itemize}
+
+4. MODULAR COMMANDS STRUCTURE:
+   Create paper_draft/commands/ directory with:
+   - math.tex: Math notation macros (copy from templates/paper_writing/commands/)
+   - general.tex: Formatting macros (copy from templates/paper_writing/commands/)
+   - macros.tex: Project-specific term definitions
+
+   In main.tex, include:
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+5. REFERENCE CONVENTIONS:
+   Use reference macros from math.tex:
+   - \figref{fig:name} for "figure 1" (lowercase, in-sentence)
+   - \Figref{fig:name} for "Figure 1" (capitalized, start of sentence)
+   - \secref{sec:name} for "section 2"
+
+6. TEXT FORMATTING:
+   - Use \para{Header text} for bold paragraph headers
+   - Define method/dataset names with \textsc and \xspace:
+     \newcommand{\methodname}{\textsc{MethodName}\xspace}
+
+7. TABLE FORMATTING:
+   - Use booktabs package (no vertical lines)
+   - Use \resizebox{\textwidth}{!}{...} for wide tables
+   - Use @{} to remove padding at table edges
+   - Use \cmidrule(lr){x-y} for sub-headers
+   - Use \textsc{} for dataset/method names in headers
+   - Bold best results with {\bf ...}
+
+8. FIGURE FORMATTING:
+   - Use 0.32\textwidth for 3-column subfigures
+   - Use 0.95\linewidth for full-width figures
+   - Use \input{figures/legend} for shared legends
+   - Write self-contained captions explaining key observations
+
+9. RESULTS PRESENTATION:
+   - Define \increase and \decrease for colored arrows (green up, red down)
+   - Bold best results in tables
+   - Report confidence intervals when available
+
+10. ALGORITHM STYLING:
+    - Use algpseudocode with [noend]
+    - Use \triangleright for comments
+
+11. HYPERLINKS (REQUIRED):
+    - Always use \usepackage[hidelinks]{hyperref} or with colored links
+    - All citations, section refs, figure refs, table refs must be clickable
+    - This is essential for reader navigation
+
+════════════════════════════════════════════════════════════════════════════════
+                          WORKFLOW: REVIEW AND REFLECT
+════════════════════════════════════════════════════════════════════════════════
+
+Before calling finish, you MUST complete these review steps:
+
+1. REVIEW RESOURCES (at the start):
+   - Read templates/skills/paper-writer/SKILL.md for detailed guidance
+   - Study templates/paper_writing/lab_style_guide.md for style conventions
+   - Browse paper_examples/ for formatting and language patterns
+
+2. SELF-REFLECTION (before finishing):
+   After writing all sections, review your work against these criteria:
+
+   LANGUAGE CHECK:
+   - [ ] Is the writing clear and jargon-free?
+   - [ ] Are claims specific with quantitative support?
+   - [ ] Is active voice used throughout?
+
+   FORMATTING CHECK:
+   - [ ] Does main.tex include \input{commands/math}, \input{commands/general}, \input{commands/macros}?
+   - [ ] Is hyperref package included for clickable references?
+   - [ ] Do tables use booktabs (no vertical lines)?
+   - [ ] Are best results bolded in tables?
+   - [ ] Are figures/tables properly captioned?
+
+   STRUCTURE CHECK:
+   - [ ] Does introduction follow: hook → importance → gap → approach → preview → contributions?
+   - [ ] Are contribution bullets specific with action verbs?
+   - [ ] Does the paper compile without errors?
+
+3. FIX ISSUES:
+   - Address any issues found in the self-reflection
+   - Re-compile and verify the PDF looks correct
+
+Only after completing this review should you consider the paper finished.
