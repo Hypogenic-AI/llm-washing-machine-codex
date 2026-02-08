@@ -1,55 +1,31 @@
 # Downloaded Papers
 
-1. **Toy Models of Superposition** (`2209.10652_toy_models_of_superposition.pdf`)
+1. Toy Models of Superposition (2022)
    - Authors: Nelson Elhage et al.
-   - Year: 2022
    - arXiv: 2209.10652
-   - Why relevant: Introduces superposition/polysemanticity framework for feature directions in neural networks.
+   - File: 2209.10652_toy_models_of_superposition.pdf
+   - Why relevant: Formalizes superposition/polysemanticity, central to how concepts might be encoded in residual streams.
 
-2. **Are Representations Built from the Ground Up? An Empirical Examination of Local Composition in Language Models** (`2210.03575_are_representations_built_from_the_ground_up.pdf`)
-   - Authors: Emmy Liu, Graham Neubig
-   - Year: 2022
-   - arXiv: 2210.03575
-   - Why relevant: Empirical study of compositionality in LM representations, directly related to compound concept formation.
+2. Sparse Autoencoders Find Highly Interpretable Features in Language Models (2023)
+   - Authors: Hoagy Cunningham et al.
+   - arXiv: 2309.08600
+   - File: 2309.08600_sparse_autoencoders_interpretable_features.pdf
+   - Why relevant: Uses SAEs to find sparse directions in activations, directly addressing concept-level features.
 
-3. **Towards Best Practices of Activation Patching in Language Models: Metrics and Methods** (`2309.16042_best_practices_activation_patching.pdf`)
-   - Authors: Fred Zhang, Neel Nanda
-   - Year: 2023
-   - arXiv: 2309.16042
-   - Why relevant: Standardizes causal tracing/activation patching for localization of features.
+3. Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small (2022)
+   - Authors: Kevin Wang et al.
+   - arXiv: 2211.00593
+   - File: 2211.00593_interpretability_in_the_wild.pdf
+   - Why relevant: Demonstrates causal tracing of a specific behavior in GPT-2 small; methodology useful for locating concept circuits.
 
-4. **The Linear Representation Hypothesis and the Geometry of Large Language Models** (`2311.03658_linear_representation_hypothesis.pdf`)
-   - Authors: Kiho Park, Yo Joong Choe, Victor Veitch
-   - Year: 2024
-   - arXiv: 2311.03658
-   - Why relevant: Formalizes what it means for concepts to be represented linearly as directions.
+4. Locating and Editing Factual Associations in GPT (2022)
+   - Authors: Kevin Meng et al.
+   - arXiv: 2202.05262
+   - File: 2202.05262_locating_and_editing_factual_associations.pdf
+   - Why relevant: Shows factual associations localized in mid-layer MLPs; relevant to locating concept storage.
 
-5. **Scaling and Evaluating Sparse Autoencoders** (`2406.04093_scaling_and_evaluating_sparse_autoencoders.pdf`)
-   - Authors: Leo Gao et al.
-   - Year: 2024
-   - arXiv: 2406.04093
-   - Why relevant: Practical SAE training/scaling and evaluation metrics for feature discovery.
-
-6. **Gemma Scope: Open Sparse Autoencoders Everywhere All At Once on Gemma 2** (`2408.05147_gemma_scope.pdf`)
-   - Authors: Tom Lieberum et al.
-   - Year: 2024
-   - arXiv: 2408.05147
-   - Why relevant: Provides open SAE weights and tooling for Gemma 2 layers, enabling feature analysis.
-
-7. **Residual Stream Analysis with Multi-Layer SAEs** (`2409.04185_residual_stream_analysis_with_multi_layer_saes.pdf`)
-   - Authors: Tim Lawson et al.
-   - Year: 2025
-   - arXiv: 2409.04185
-   - Why relevant: MLSAE approach for tracking features across layers in the residual stream.
-
-8. **Automated Interpretability Metrics Do Not Distinguish Trained and Random Transformers** (`2501.17727_automated_interpretability_metrics_do_not_distinguish_trained_and_random_transformers.pdf`)
-   - Authors: Thomas Heap et al.
-   - Year: 2025
-   - arXiv: 2501.17727
-   - Why relevant: Cautions about SAE metrics; motivates stronger baselines.
-
-9. **Sparse Autoencoders Do Not Find Canonical Units of Analysis** (`2502.04878_sparse_autoencoders_do_not_find_canonical_units.pdf`)
-   - Authors: Patrick Leask et al.
-   - Year: 2025
-   - arXiv: 2502.04878
-   - Why relevant: Shows SAE features are not necessarily atomic/canonical; impacts interpretation.
+5. Knowledge Neurons in Pretrained Transformers (2021)
+   - Authors: Damai Dai et al.
+   - arXiv: 2104.08696
+   - File: 2104.08696_knowledge_neurons.pdf
+   - Why relevant: Proposes neuron-level attribution for factual knowledge; related to single-concept localization.

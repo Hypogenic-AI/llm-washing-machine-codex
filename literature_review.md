@@ -1,139 +1,149 @@
-# Literature Review
+# Literature Review: Where is “Washing Machine” Stored in LLMs?
 
-## Research Area Overview
-This project sits at the intersection of mechanistic interpretability, representation geometry, and compositionality in language models. Key threads include: (1) whether concepts correspond to linear directions (linear representation hypothesis), (2) how superposition and polysemanticity complicate feature localization, (3) sparse autoencoders (SAEs) as a practical tool for extracting features, and (4) compositionality probes that test whether phrase representations are constructed from constituent representations.
+## Review Scope
 
-## Key Papers
+### Research Question
+Where (and how) are composite concepts like “washing machine” represented in transformer residual streams—via sparse monosemantic features, superposed features, or compositional mixtures of more atomic concepts (e.g., “washing” + “machine”)?
 
-### Paper 1: Toy Models of Superposition
+### Inclusion Criteria
+- Papers on feature superposition / polysemanticity or monosemantic feature discovery
+- Mechanistic interpretability papers that localize knowledge or concept-like features
+- Methods that probe or edit internal representations in transformer LMs
+
+### Exclusion Criteria
+- Purely behavioral probing without access to internal activations
+- Non-transformer architectures unless directly comparable
+
+### Time Frame
+2019–present (emphasis on 2021–2024)
+
+### Sources
+- arXiv
+- Semantic Scholar
+- Transformer Circuits (Anthropic)
+- ROME project site
+
+## Search Log
+
+| Date | Query | Source | Results | Notes |
+|------|-------|--------|---------|-------|
+| 2026-02-08 | "sparse autoencoders interpretable features language models" | arXiv / Semantic Scholar | 10+ | High relevance to feature discovery |
+| 2026-02-08 | "toy models of superposition" | Semantic Scholar | 1 | Core theory of superposition |
+| 2026-02-08 | "locating and editing factual associations in GPT" | arXiv / ROME site | 1 | Causal tracing + editing |
+| 2026-02-08 | "interpretability in the wild IOI" | arXiv | 1 | Circuit-level causal analysis |
+| 2026-02-08 | "knowledge neurons in pretrained transformers" | arXiv | 1 | Neuron-level attribution |
+| 2026-02-08 | "towards monosemanticity dictionary learning" | Transformer Circuits | 1 | Dictionary learning for features |
+| 2026-02-08 | "mathematical framework for transformer circuits" | Transformer Circuits | 1 | Foundational mechanistic interpretability |
+
+## Screening Results
+
+| Paper | Title Screen | Abstract Screen | Full-Text | Notes |
+|------|-------------|----------------|-----------|-------|
+| Toy Models of Superposition | Include | Include | Include | Foundational theory for superposition |
+| Sparse Autoencoders Find Highly Interpretable Features | Include | Include | Include | Direct method for feature discovery |
+| Interpretability in the Wild (IOI) | Include | Include | Include | Causal tracing of behavior |
+| Locating and Editing Factual Associations (ROME) | Include | Include | Include | Localization of factual knowledge |
+| Knowledge Neurons | Include | Include | Include | Neuron-level attribution |
+| Towards Monosemanticity | Include | Include | Include | Dictionary learning for LMs |
+| Mathematical Framework for Transformer Circuits | Include | Include | Include | Background for circuit analysis |
+
+## Paper Summaries
+
+### Toy Models of Superposition (2022)
 - **Authors**: Nelson Elhage et al.
-- **Year**: 2022
 - **Source**: arXiv 2209.10652
-- **Key Contribution**: Introduces toy models showing superposition and polysemanticity as a consequence of sparse feature representations.
-- **Methodology**: Synthetic ReLU networks with sparse input features; analyze phase changes and feature geometry.
-- **Datasets Used**: Synthetic data (toy models)
-- **Results**: Demonstrates superposition, monosemantic vs. polysemantic features, and geometric structure of features.
-- **Code Available**: Yes (paper references a repo/colab)
-- **Relevance to Our Research**: Establishes why compound concepts may not correspond to single orthogonal directions.
+- **Key Contribution**: Formalizes feature superposition and polysemanticity in simplified models.
+- **Methodology**: Theoretical and toy-model analysis of linear representations under sparsity constraints.
+- **Datasets**: Synthetic toy tasks
+- **Results**: Shows why sparse features can be superposed in a single direction when representation capacity is limited.
+- **Code Available**: Yes (Anthropic / Transformer Circuits)
+- **Relevance**: Provides theoretical basis for expecting composite concepts to be mixtures rather than orthogonal directions.
 
-### Paper 2: Are Representations Built from the Ground Up?
-- **Authors**: Emmy Liu, Graham Neubig
-- **Year**: 2022
-- **Source**: arXiv 2210.03575
-- **Key Contribution**: Probes whether phrase representations are predictable from constituents (local compositionality).
-- **Methodology**: Affine/linear probes predicting parent phrase embeddings from child embeddings; evaluation on compositionality datasets.
-- **Datasets Used**: Penn Treebank phrases, CHIP idiom dataset
-- **Results**: Parent representations are predictable from constituents, but alignment with human compositionality judgments is weak.
-- **Code Available**: Yes (lm-compositionality repo)
-- **Relevance to Our Research**: Directly informs how compound concepts like “washing machine” might be built.
-
-### Paper 3: Towards Best Practices of Activation Patching
-- **Authors**: Fred Zhang, Neel Nanda
-- **Year**: 2023
-- **Source**: arXiv 2309.16042
-- **Key Contribution**: Systematic evaluation of activation patching variants and metrics.
-- **Methodology**: Compare corruption/patching strategies and evaluation metrics for causal tracing.
-- **Datasets Used**: Standard LM tasks and prompts (various localization tasks)
-- **Results**: Hyperparameter choices can change localization conclusions; provides best practices.
-- **Code Available**: Yes (paper linked)
-- **Relevance to Our Research**: Guides robust localization for concept features.
-
-### Paper 4: The Linear Representation Hypothesis and the Geometry of LLMs
-- **Authors**: Kiho Park, Yo Joong Choe, Victor Veitch
-- **Year**: 2024
-- **Source**: arXiv 2311.03658
-- **Key Contribution**: Formalizes what it means for concepts to be linear directions; connects to probing and steering.
-- **Methodology**: Counterfactual formalism; experiments on LLaMA-2.
-- **Datasets Used**: Model-internal evaluations with counterfactual pairs
-- **Results**: Demonstrates linear representations under a specific inner product.
-- **Code Available**: Yes (linked in paper)
-- **Relevance to Our Research**: Provides theoretical framing for “concept direction” claims.
-
-### Paper 5: Scaling and Evaluating Sparse Autoencoders
-- **Authors**: Leo Gao et al.
-- **Year**: 2024
-- **Source**: arXiv 2406.04093
-- **Key Contribution**: Training recipe for large SAEs and evaluation metrics.
-- **Methodology**: k-sparse autoencoders; scaling experiments; new quality metrics.
-- **Datasets Used**: GPT-2 / GPT-4 activations (token streams)
-- **Results**: Scaling laws; large SAEs recover more interpretable features.
+### Sparse Autoencoders Find Highly Interpretable Features in Language Models (2023)
+- **Authors**: Hoagy Cunningham et al.
+- **Source**: arXiv 2309.08600
+- **Key Contribution**: SAEs can recover interpretable sparse features from transformer activations.
+- **Methodology**: Train sparse autoencoders on GPT-2 activations, analyze recovered features.
+- **Datasets**: GPT-2 activations from text corpora
+- **Results**: Many SAE features align with human-interpretable concepts; features are sparse and compositional.
 - **Code Available**: Yes (openai/sparse_autoencoder)
-- **Relevance to Our Research**: Practical path to extract “washing” and “machine” features.
+- **Relevance**: Directly supports searching for “washing machine” as a sparse feature or combination of features.
 
-### Paper 6: Gemma Scope
-- **Authors**: Tom Lieberum et al.
-- **Year**: 2024
-- **Source**: arXiv 2408.05147
-- **Key Contribution**: Releases open SAEs for Gemma 2 across layers.
-- **Methodology**: JumpReLU SAEs on Gemma 2 layers; evaluation on standard SAE metrics.
-- **Datasets Used**: Gemma 2 pretraining data (token streams)
-- **Results**: Public SAE weights + Neuronpedia demo.
-- **Code Available**: Weights + demo; paper links to HuggingFace/Neuronpedia.
-- **Relevance to Our Research**: Ready-to-use SAEs for concept localization.
+### Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small (2022)
+- **Authors**: Kevin Wang et al.
+- **Source**: arXiv 2211.00593
+- **Key Contribution**: Identifies a causal circuit for IOI behavior in GPT-2 small.
+- **Methodology**: Activation patching / causal tracing across layers and heads.
+- **Datasets**: Synthetic IOI prompts
+- **Results**: A small set of heads and MLPs are causally responsible for IOI.
+- **Code Available**: Yes (Transformer Circuits)
+- **Relevance**: Provides methods to locate concept-related circuits in residual streams.
 
-### Paper 7: Residual Stream Analysis with Multi-Layer SAEs
-- **Authors**: Tim Lawson et al.
-- **Year**: 2025
-- **Source**: arXiv 2409.04185 (ICLR 2025)
-- **Key Contribution**: MLSAE approach for tracking features across layers.
-- **Methodology**: Train a single SAE on residual streams from all layers; analyze layer distributions.
-- **Datasets Used**: Transformer activation streams
-- **Results**: Latents often activate in layer-specific patterns; supports cross-layer analysis.
-- **Code Available**: Yes (linked in paper)
-- **Relevance to Our Research**: Helps track composition of “washing” + “machine” across depth.
+### Locating and Editing Factual Associations in GPT (ROME) (2022)
+- **Authors**: Kevin Meng et al.
+- **Source**: arXiv 2202.05262
+- **Key Contribution**: Shows factual associations are localized in specific MLP layers and can be edited.
+- **Methodology**: Causal tracing + rank-one model edits.
+- **Datasets**: CounterFact, zsRE
+- **Results**: Edits are localized and can be evaluated with minimal side effects.
+- **Code Available**: Yes (kmeng01/rome)
+- **Relevance**: Suggests “washing machine” knowledge might localize to mid-layer MLPs for factual associations.
 
-### Paper 8: Automated Interpretability Metrics Do Not Distinguish Trained and Random Transformers
-- **Authors**: Thomas Heap et al.
-- **Year**: 2025
-- **Source**: arXiv 2501.17727
-- **Key Contribution**: Shows SAE metrics can be misleading without random baselines.
-- **Methodology**: Train SAEs on random vs. trained Pythia models; compare metrics.
-- **Datasets Used**: Pythia activation streams
-- **Results**: Many SAE metrics fail to discriminate trained vs. random.
-- **Code Available**: Noted in paper
-- **Relevance to Our Research**: Emphasizes need for baselines when testing concept features.
+### Knowledge Neurons in Pretrained Transformers (2021)
+- **Authors**: Damai Dai et al.
+- **Source**: arXiv 2104.08696
+- **Key Contribution**: Identifies neurons strongly associated with factual knowledge.
+- **Methodology**: Gradient-based attribution and neuron editing.
+- **Datasets**: LAMA-style cloze facts
+- **Results**: Specific neurons influence factual outputs across prompts.
+- **Code Available**: Yes (Hunter-DDM/knowledge-neurons)
+- **Relevance**: Provides neuron-level localization approach for concept probes.
 
-### Paper 9: Sparse Autoencoders Do Not Find Canonical Units of Analysis
-- **Authors**: Patrick Leask et al.
-- **Year**: 2025
-- **Source**: arXiv 2502.04878 (ICLR 2025)
-- **Key Contribution**: SAE features are not canonical/atomic; larger SAEs add novel latents.
-- **Methodology**: SAE stitching + meta-SAE analysis.
-- **Datasets Used**: Transformer activation streams
-- **Results**: Larger SAEs can decompose latents; highlights non-atomicity of features.
-- **Code Available**: Noted in paper
-- **Relevance to Our Research**: Warns against assuming single “washing machine” feature exists.
+### Towards Monosemanticity: Decomposing Language Models With Dictionary Learning (2023)
+- **Authors**: Anthropic (Transformer Circuits)
+- **Source**: Transformer Circuits report
+- **Key Contribution**: Dictionary learning yields more monosemantic features vs. raw neurons.
+- **Methodology**: Sparse dictionary learning on residual stream activations.
+- **Datasets**: LM activations
+- **Results**: Monosemantic features appear in dictionary basis; supports sparse, decomposed representations.
+- **Code Available**: Partial (SAE / dictionary learning tooling)
+- **Relevance**: Directly tests whether “washing machine” is represented as a single feature or composition.
 
-## Common Methodologies
-- **Sparse Autoencoders (SAE)**: Used to extract sparse features in residual stream activations.
-- **Activation Patching / Causal Tracing**: Localizes where information is used in the network.
-- **Compositionality Probes**: Predict parent phrase representation from child representations.
-- **Linear Probing / Steering**: Tests for linear directions representing concepts.
+### A Mathematical Framework for Transformer Circuits (2021–2022)
+- **Authors**: Anthropic (Transformer Circuits)
+- **Source**: Transformer Circuits report
+- **Key Contribution**: Defines the linear algebraic framework for analyzing attention and residual streams.
+- **Methodology**: Theoretical decomposition of transformer computations.
+- **Datasets**: N/A (theoretical)
+- **Results**: Clarifies how information is routed and represented across layers.
+- **Code Available**: N/A (report + tools in TransformerLens)
+- **Relevance**: Framework needed to reason about where concept features can be stored.
 
-## Standard Baselines
-- Linear probes or affine composition functions
-- Randomized model baselines (random initialization or shuffled activations)
-- Single-layer SAEs vs. multi-layer SAEs
-- Control tasks with non-compositional phrases (idioms)
+## Themes and Synthesis
 
-## Evaluation Metrics
-- Reconstruction loss / normalized MSE (SAE)
-- Sparsity metrics (active latents per token)
-- Auto-interpretability scores (explanation alignment)
-- Compositionality reconstruction error (tree reconstruction error / cosine distance)
+### Theme 1: Superposition and Polysemanticity
+- Toy Models of Superposition argues that capacity constraints lead to feature superposition, motivating sparse decompositions.
 
-## Datasets in the Literature
-- **Penn Treebank phrases**: Used for local composition prediction.
-- **CHIP dataset**: Human-annotated idiom compositionality scores.
-- **Large LM training corpora**: Token streams used for SAE training.
+### Theme 2: Sparse Feature Discovery
+- SAEs and dictionary learning (Sparse Autoencoders, Towards Monosemanticity) find interpretable features in residual streams.
 
-## Gaps and Opportunities
-- Direct tests for compound noun concepts (e.g., “washing machine”) are rare.
-- SAE features are not guaranteed to be canonical; need better baselines and controls.
-- Few studies explicitly test whether compound concepts are compositional combinations in residual stream directions.
+### Theme 3: Causal Localization
+- IOI and ROME show that specific heads/MLPs carry causal responsibility for behaviors and knowledge.
+
+### Theme 4: Neuron-Level Attribution
+- Knowledge Neurons shows individual neuron sets can be linked to factual knowledge.
+
+## Research Gaps
+- Limited direct evidence for compositional concepts like “washing machine” in residual streams.
+- Need explicit comparison between atomic (“washing”, “machine”) vs. composite (“washing machine”) feature activations.
+- Sparse feature methods are promising but need targeted compositionality probes.
 
 ## Recommendations for Our Experiment
-- **Recommended datasets**: CHIP for idioms/compounds, WikiText-2 for activation streams.
-- **Recommended baselines**: Randomized model baseline; single-layer SAE vs. MLSAE; linear probe for “washing” and “machine” separately.
-- **Recommended metrics**: SAE reconstruction + sparsity, probing accuracy for composed vs. atomic features, causal patching effect size.
-- **Methodological considerations**: Use activation patching best practices; avoid over-trusting SAE auto-interpretability metrics; compare features across layers.
+
+- **Recommended datasets**: WikiText-2 (fast activation sampling), LAMBADA (long-context prompts), CounterFact (knowledge probes).
+- **Recommended baselines**: Neuron attribution (Knowledge Neurons), causal tracing (ROME), IOI-style activation patching.
+- **Recommended metrics**: Feature activation sparsity, causal effect size from patching, concept separation score (e.g., cosine separation of “washing” vs “washing machine”).
+- **Methodological considerations**:
+  - Compare concept activation under isolated vs. composite prompts.
+  - Use SAE features as candidate concept directions, then test causal impact via patching/ablation.
+  - Analyze across multiple layers and resid locations (pre/post MLP).

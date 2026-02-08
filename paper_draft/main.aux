@@ -18,40 +18,43 @@
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \bibstyle{plainnat}
 \citation{elhage2022superposition}
-\citation{liu2022groundup}
-\citation{gao2024sae,leask2025sae}
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
-\newlabel{sec:introduction}{{1}{1}{Introduction}{section.1}{}}
+\citation{cunningham2023sparse,anthropic2023monosemanticity}
+\citation{wang2022ioi,meng2022rome}
+\citation{dai2021knowledgeneurons}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Abstract}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Introduction}{1}{section.2}\protected@file@percent }
+\newlabel{sec:introduction}{{2}{1}{Introduction}{section.2}{}}
 \citation{elhage2022superposition}
-\citation{park2024linear}
-\citation{liu2022groundup}
-\citation{gao2024sae}
-\citation{leask2025sae}
-\citation{heap2025metrics}
-\citation{zhang2023patching}
-\citation{lawson2025mlsae}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{section.2}\protected@file@percent }
-\newlabel{sec:related_work}{{2}{2}{Related Work}{section.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Methodology}{2}{section.3}\protected@file@percent }
-\newlabel{sec:methodology}{{3}{2}{Methodology}{section.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Main metrics for compound vs. constituent analysis. Causal patching reports mean $\pm $ standard deviation over $n=5$ template pairs. Lower MSE and higher cosine are better for the probe.}}{3}{table.1}\protected@file@percent }
-\newlabel{tab:main_metrics}{{1}{3}{Main metrics for compound vs. constituent analysis. Causal patching reports mean $\pm $ standard deviation over $n=5$ template pairs. Lower MSE and higher cosine are better for the probe}{table.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Results}{3}{section.4}\protected@file@percent }
-\newlabel{sec:results}{{4}{3}{Results}{section.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{3}{section.5}\protected@file@percent }
-\newlabel{sec:discussion}{{5}{3}{Discussion}{section.5}{}}
+\citation{cunningham2023sparse,anthropic2023monosemanticity}
+\citation{wang2022ioi}
+\citation{meng2022rome}
+\citation{dai2021knowledgeneurons}
+\citation{merity2017wikitext}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Method overview. We mine \textsc  {WikiText-2}\xspace  contexts, extract \textsc  {GPT-2 Small}\xspace  activations, encode with a pretrained \textsc  {SAE}\xspace  , and evaluate overlap, causal patching, and compositional probes.}}{2}{figure.1}\protected@file@percent }
+\newlabel{fig:method_overview}{{1}{2}{Method overview. We mine \wikitext contexts, extract \gpttwo activations, encode with a pretrained \sae , and evaluate overlap, causal patching, and compositional probes}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Related Work}{2}{section.3}\protected@file@percent }
+\newlabel{sec:related_work}{{3}{2}{Related Work}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Methodology}{2}{section.4}\protected@file@percent }
+\newlabel{sec:methodology}{{4}{2}{Methodology}{section.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Context counts and latent samples after filtering \textsc  {WikiText-2}\xspace  .}}{3}{table.1}\protected@file@percent }
+\newlabel{tab:data_stats}{{1}{3}{Context counts and latent samples after filtering \wikitext }{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Main results for feature overlap, patching, and compositionality. Best values per metric are in \textbf  {bold}.}}{3}{table.2}\protected@file@percent }
+\newlabel{tab:main_results}{{2}{3}{Main results for feature overlap, patching, and compositionality. Best values per metric are in \textbf {bold}}{table.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{3}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{5}{3}{Results}{section.5}{}}
 \bibdata{references}
-\bibcite{elhage2022superposition}{{1}{2022}{{Elhage et~al.}}{{Elhage, Hume, Olsson, Schaeffer, Henighan, and Olah}}}
-\bibcite{gao2024sae}{{2}{2024}{{Gao et~al.}}{{}}}
-\bibcite{heap2025metrics}{{3}{2025}{{Heap et~al.}}{{}}}
-\bibcite{lawson2025mlsae}{{4}{2025}{{Lawson et~al.}}{{}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Top-$k$ \textsc  {SAE}\xspace  feature overlap between compound and constituent contexts. Overlaps are low, and compound-specific features dominate the top-50 set.}}{4}{figure.1}\protected@file@percent }
-\newlabel{fig:sae_overlap}{{1}{4}{Top-$k$ \sae feature overlap between compound and constituent contexts. Overlaps are low, and compound-specific features dominate the top-50 set}{figure.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{4}{section.6}\protected@file@percent }
-\newlabel{sec:conclusion}{{6}{4}{Conclusion}{section.6}{}}
-\bibcite{leask2025sae}{{5}{2025}{{Leask et~al.}}{{}}}
-\bibcite{liu2022groundup}{{6}{2022}{{Liu and Neubig}}{{}}}
-\bibcite{park2024linear}{{7}{2024}{{Park et~al.}}{{Park, Choe, and Veitch}}}
-\bibcite{zhang2023patching}{{8}{2023}{{Zhang and Nanda}}{{}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Causal patching effects at layer 6. Patching compound activations into \textit  {washing}\xspace  process contexts yields no consistent increase in the ``machine'' logit and shows substantial variance across $n=5$ templates.}}{5}{figure.2}\protected@file@percent }
-\newlabel{fig:causal_patching}{{2}{5}{Causal patching effects at layer 6. Patching compound activations into \washing process contexts yields no consistent increase in the ``machine'' logit and shows substantial variance across $n=5$ templates}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces SAE top-$k$ overlap between compound and constituent contexts. Overlap remains low across comparisons, consistent with weak shared sparse features.}}{4}{figure.2}\protected@file@percent }
+\newlabel{fig:sae_overlap}{{2}{4}{SAE top-$k$ overlap between compound and constituent contexts. Overlap remains low across comparisons, consistent with weak shared sparse features}{figure.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{4}{section.6}\protected@file@percent }
+\newlabel{sec:discussion}{{6}{4}{Discussion}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{4}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion}{{7}{4}{Conclusion}{section.7}{}}
+\bibcite{anthropic2023monosemanticity}{{1}{2023}{{Anthropic}}{{}}}
+\bibcite{cunningham2023sparse}{{2}{2023}{{Cunningham et~al.}}{{Cunningham, Ewart, Riggs, Huben, and Sharkey}}}
+\bibcite{dai2021knowledgeneurons}{{3}{2021}{{Dai et~al.}}{{}}}
+\bibcite{elhage2022superposition}{{4}{2022}{{Elhage et~al.}}{{Elhage, Hume, Olsson, Schaeffer, Henighan, and Olah}}}
+\bibcite{meng2022rome}{{5}{2022}{{Meng et~al.}}{{}}}
+\bibcite{merity2017wikitext}{{6}{2017}{{Merity et~al.}}{{Merity, Xiong, Bradbury, and Socher}}}
+\bibcite{wang2022ioi}{{7}{2022}{{Wang et~al.}}{{}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Causal patching effects on the ``machine'' logit. The mean effect is near zero with high variance, indicating no reliable causal lift from the patched compound activations at layer 6.}}{5}{figure.3}\protected@file@percent }
+\newlabel{fig:causal_patching}{{3}{5}{Causal patching effects on the ``machine'' logit. The mean effect is near zero with high variance, indicating no reliable causal lift from the patched compound activations at layer 6}{figure.3}{}}

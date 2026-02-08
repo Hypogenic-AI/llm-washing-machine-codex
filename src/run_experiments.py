@@ -1,5 +1,7 @@
 import json
 import os
+import platform
+from importlib import metadata
 import random
 import re
 import sys
@@ -15,10 +17,11 @@ import torch
 from datasets import load_from_disk
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error
+from scipy import stats
 
 # Ensure local sparse_autoencoder is importable without installation
 REPO_ROOT = Path(__file__).resolve().parents[1]
-LOCAL_SAE_PATH = REPO_ROOT / "code" / "openai_sparse_autoencoder"
+LOCAL_SAE_PATH = REPO_ROOT / "code" / "sparse_autoencoder"
 sys.path.insert(0, str(LOCAL_SAE_PATH))
 
 import blobfile as bf
@@ -34,6 +37,7 @@ class Config:
     sae_location: str = "resid_post_mlp"
     top_k: int = 50
     max_contexts: int = 200
+    bootstrap_samples: int = 200
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     results_dir: str = "results"
     plots_dir: str = "results/plots"
@@ -51,8 +55,31 @@ def ensure_dirs(config: Config) -> None:
     os.makedirs(config.plots_dir, exist_ok=True)
 
 
+def get_env_info() -> Dict[str, str]:
+    try:
+        tl_version = transformer_lens.__version__
+    except AttributeError:
+        tl_version = metadata.version("transformer-lens")
+
+    info = {
+        "python_version": sys.version.replace("\n", " "),
+        "platform": platform.platform(),
+        "torch_version": torch.__version__,
+        "cuda_available": str(torch.cuda.is_available()),
+        "cuda_version": str(torch.version.cuda),
+        "transformer_lens_version": tl_version,
+        "numpy_version": np.__version__,
+        "pandas_version": pd.__version__,
+    }
+    if torch.cuda.is_available():
+        info["gpu_name"] = torch.cuda.get_device_name(0)
+        info["gpu_count"] = str(torch.cuda.device_count())
+        info["gpu_memory_gb"] = f"{torch.cuda.get_device_properties(0).total_memory / 1e9:.2f}"
+    return info
+
+
 def load_wikitext() -> pd.DataFrame:
-    dataset = load_from_disk("datasets/wikitext_2_raw")
+    dataset = load_from_disk("datasets/wikitext_2_raw_v1")
     # Concatenate splits for context search
     all_rows = []
     for split in ["train", "validation", "test"]:
@@ -281,12 +308,24 @@ def run_causal_patching(model, layer: int, device: str) -> Dict[str, float]:
         deltas.append(patched_logit - base_logit)
 
     if not deltas:
-        return {"mean_logit_delta": 0.0, "std_logit_delta": 0.0, "n": 0}
+        return {
+            "mean_logit_delta": 0.0,
+            "std_logit_delta": 0.0,
+            "n": 0,
+            "t_stat": 0.0,
+            "p_value": 1.0,
+            "deltas": [],
+        }
 
+    deltas_arr = np.array(deltas)
+    t_stat, p_value = stats.ttest_1samp(deltas_arr, popmean=0.0)
     return {
-        "mean_logit_delta": float(np.mean(deltas)),
-        "std_logit_delta": float(np.std(deltas)),
+        "mean_logit_delta": float(np.mean(deltas_arr)),
+        "std_logit_delta": float(np.std(deltas_arr)),
         "n": int(len(deltas)),
+        "t_stat": float(t_stat),
+        "p_value": float(p_value),
+        "deltas": [float(x) for x in deltas_arr.tolist()],
     }
 
 
@@ -368,6 +407,66 @@ def run_compositionality_probe(model, bigrams: List[Tuple[str, str]], device: st
     }
 
 
+def bootstrap_overlap(
+    latents_a: List[torch.Tensor],
+    latents_b: List[torch.Tensor],
+    latents_c: List[torch.Tensor],
+    k: int,
+    n_boot: int,
+) -> Dict[str, float]:
+    if not latents_a or not latents_b or not latents_c:
+        return {
+            "compound_washing_mean": 0.0,
+            "compound_machine_mean": 0.0,
+            "compound_union_mean": 0.0,
+            "compound_washing_ci": [0.0, 0.0],
+            "compound_machine_ci": [0.0, 0.0],
+            "compound_union_ci": [0.0, 0.0],
+        }
+
+    rng = np.random.default_rng(42)
+    a = torch.stack(latents_a)
+    b = torch.stack(latents_b)
+    c = torch.stack(latents_c)
+
+    def sample_mean(latents: torch.Tensor) -> torch.Tensor:
+        idx = rng.integers(0, latents.shape[0], size=latents.shape[0])
+        return latents[idx].mean(dim=0)
+
+    overlaps = {"ab": [], "ac": [], "au": []}
+    for _ in range(n_boot):
+        mean_a = sample_mean(a)
+        mean_b = sample_mean(b)
+        mean_c = sample_mean(c)
+
+        top_a = top_k_latents(mean_a, k)
+        top_b = top_k_latents(mean_b, k)
+        top_c = top_k_latents(mean_c, k)
+
+        union_bc = list(set(top_b) | set(top_c))
+        overlaps["ab"].append(jaccard(top_a, top_b))
+        overlaps["ac"].append(jaccard(top_a, top_c))
+        overlaps["au"].append(jaccard(top_a, union_bc))
+
+    def summarize(values: List[float]) -> Tuple[float, List[float]]:
+        arr = np.array(values)
+        ci = np.percentile(arr, [2.5, 97.5]).tolist()
+        return float(arr.mean()), [float(ci[0]), float(ci[1])]
+
+    ab_mean, ab_ci = summarize(overlaps["ab"])
+    ac_mean, ac_ci = summarize(overlaps["ac"])
+    au_mean, au_ci = summarize(overlaps["au"])
+
+    return {
+        "compound_washing_mean": ab_mean,
+        "compound_machine_mean": ac_mean,
+        "compound_union_mean": au_mean,
+        "compound_washing_ci": ab_ci,
+        "compound_machine_ci": ac_ci,
+        "compound_union_ci": au_ci,
+    }
+
+
 def main() -> None:
     config = Config()
     set_seed(config.seed)
@@ -380,6 +479,10 @@ def main() -> None:
     model.eval()
 
     df = load_wikitext()
+    data_quality = {
+        "total_rows": int(len(df)),
+        "empty_rows": int((df["text"].isna() | (df["text"].str.strip() == "")).sum()),
+    }
     contexts = extract_contexts(df, config.max_contexts)
 
     washing_ids = set(get_token_ids(model, " washing") + get_token_ids(model, "washing"))
@@ -455,9 +558,27 @@ def main() -> None:
     bigrams = build_bigram_dataset(df, max_bigrams=200)
     probe_results = run_compositionality_probe(model, bigrams, config.device)
 
+    overlap_boot = bootstrap_overlap(
+        latents_compound,
+        latents_washing,
+        latents_machine,
+        config.top_k,
+        config.bootstrap_samples,
+    )
+
+    examples = {
+        "compound_examples": contexts["compound"][:3],
+        "washing_only_examples": contexts["washing_only"][:3],
+        "machine_only_examples": contexts["machine_only"][:3],
+    }
+    with open(Path(config.results_dir) / "examples.json", "w") as f:
+        json.dump(examples, f, indent=2)
+
     metrics = {
         "config": asdict(config),
         "timestamp": datetime.now().isoformat(),
+        "environment": get_env_info(),
+        "data_quality": data_quality,
         "counts": {
             "compound_contexts": len(contexts["compound"]),
             "washing_only_contexts": len(contexts["washing_only"]),
@@ -471,6 +592,7 @@ def main() -> None:
             "compound_machine_jaccard": overlap_machine,
             "compound_union_jaccard": overlap_union,
             "compound_unique_fraction": len(compound_unique) / max(1, len(top_compound)),
+            "bootstrap": overlap_boot,
         },
         "cosine": {
             "compound_washing": cos_washing,

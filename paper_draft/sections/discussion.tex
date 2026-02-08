@@ -1,10 +1,8 @@
-\section{Discussion}
-\label{sec:discussion}
+\section{Discussion}\label{sec:discussion}
+\para{Interpretation.} The low overlap of top-$k$ \sae features between compound and constituents, combined with near-perfect probe reconstruction, suggests that ``washing machine'' is represented compositionally rather than by a single strong sparse feature at layer 6. The mismatch between weak overlap and strong probe performance indicates that information is present in distributed geometry even when sparse feature sets differ.
 
-\para{Interpretation.} The low \sae overlap suggests that compound contexts activate a distinct set of latents, but the compositional probe indicates that compound embeddings are almost perfectly predictable from constituents. Taken together, these results support a view where compound meaning is compositional in representation geometry even if \sae features appear unique at a single layer.
+\para{Limitations.} The washing-only latent sample count is small (10), limiting overlap reliability. Causal patching uses only five template pairs and may miss subtle effects. We study a single model (\gpttwo) and one \sae layer/location, so conclusions may not generalize across depth or scale. Finally, \sae features are not guaranteed to be canonical, and different dictionaries could yield different overlap patterns.
 
-\para{Limitations.} The compound contexts are synthetic because \wikitext contains no literal \compound examples, which limits ecological validity. The analysis targets a single model and a single layer with one pretrained \sae, and the causal patching uses only $n=5$ template pairs. Finally, \sae features are not canonical units, so uniqueness at the feature level does not imply atomicity of meaning.
+\para{Implications.} Concept-level interventions that assume a single ``compound direction'' may be insufficient for compound nouns. Multi-feature or multi-layer edits, or interventions that explicitly model composition, are more likely to capture compound meaning in practice.
 
-\para{Implications.} For concept editing and steering, these findings argue against assuming that compound nouns correspond to single directions. Interventions should consider multi-feature and multi-layer compositions, and should be evaluated with both geometric and causal diagnostics.
-
-\para{Broader impacts.} Interpretability claims about concept locality can influence safety decisions and downstream edits. Overstating atomicity risks brittle interventions; emphasizing compositionality encourages more conservative and robust control strategies.
+\para{Broader considerations.} Understanding compositional storage can inform safety and editing tools by clarifying when a single-feature edit is unlikely to control downstream behavior. While our study uses a narrow concept, the approach can extend to other compound nouns and idioms.

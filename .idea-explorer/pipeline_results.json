@@ -13,12 +13,12 @@
       },
       "log_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/resource_finder_codex.log",
       "transcript_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/resource_finder_codex_transcript.jsonl",
-      "elapsed_time": 585.8569898605347
+      "elapsed_time": 612.2220821380615
     },
     "experiment_runner": {
       "success": true,
       "return_code": 0,
-      "elapsed_time": 738.7851991653442,
+      "elapsed_time": 409.62533259391785,
       "log_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/execution_codex.log",
       "transcript_file": "/data/hypogenicai/workspaces/llm-washing-machine-codex/logs/execution_codex_transcript.jsonl"
     }

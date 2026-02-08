@@ -6,6 +6,13 @@
 % PARAGRAPH AND TEXT FORMATTING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Ensure NeurIPS track name exists for the final notice string.
+\makeatletter
+\@ifundefined{@trackname}{
+    \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear).}
+}{}
+\makeatother
+
 % Bold paragraph headers (use: \para{Header.} followed by text)
 \newcommand{\para}[1]{\noindent \textbf{#1}}
 
@@ -65,10 +72,10 @@
 % \usepackage{algorithm}
 % \usepackage[noend]{algpseudocode}
 
-% Customize algorithm appearance (guarded if algorithmic is not loaded)
-\makeatletter
-\@ifundefined{algorithmicindent}{}{\renewcommand{\algorithmicindent}{9pt}}
-\makeatother
+% Customize algorithm appearance
+% Only adjust algorithm indent if algpseudocode is loaded.
+\providecommand{\algorithmicindent}{0pt}
+\renewcommand{\algorithmicindent}{9pt}
 % \renewcommand\algorithmicdo{:}
 % \renewcommand\algorithmicthen{:}
 
@@ -174,11 +181,3 @@
 
 % Inverse notation
 \newcommand{\inv}[1]{#1^{\scriptscriptstyle-\!1}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% NEURIPS TRACK NAME DEFAULT (avoid undefined \@trackname)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\makeatletter
-\@ifundefined{@trackname}{\newcommand{\@trackname}{NeurIPS 2025}}{}
-\makeatother

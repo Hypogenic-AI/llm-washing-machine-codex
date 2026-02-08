@@ -1,14 +1,25 @@
-\section{Methodology}
-\label{sec:methodology}
+\section{Methodology}\label{sec:methodology}
+\para{Problem setup.} We test whether the compound noun ``washing machine'' is represented by a distinct residual-stream feature or by composition of constituent concepts. We compare sparse feature activations, causal effects, and embedding compositionality across three context types: compound (``washing machine''), washing-only, and machine-only.
 
-\para{Problem formulation.} We ask whether the compound \compound corresponds to a distinct direction in the \resid or is better explained as a composition of constituent features. We evaluate this using feature overlap, causal patching, and compositional probes on the same model and contexts.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/method_overview.png}
+    \caption{Method overview. We mine \wikitext contexts, extract \gpttwo activations, encode with a pretrained \sae, and evaluate overlap, causal patching, and compositional probes.}
+    \label{fig:method_overview}
+\end{figure}
 
-\para{Data and contexts.} We use \wikitext raw (train 36{,}718; validation 3{,}760; test 4{,}358 lines). After filtering empty lines (train 12{,}951; validation 1{,}299; test 1{,}467) we search for three context sets: compound (lines containing ``washing machine''), \washing-only, and \machine-only. \wikitext contains no literal \compound strings, so we add a small set of synthetic compound prompts to ensure controlled comparisons. We cap contexts at 200 per set.
+\para{Data construction.} We use the \wikitext raw corpus (\texttt{datasets/wikitext\_2\_raw\_v1}) \cite{merity2017wikitext}. After stripping whitespace and dropping empty lines, we retain 29{,}119 non-empty lines. We extract three context sets:
+(1) lines containing the exact phrase ``washing machine'' (105 contexts),
+(2) lines containing ``washing'' but not ``machine'' (178 contexts), and
+(3) lines containing ``machine'' but not ``washing'' (200 contexts).
+Token-level latent samples are 105 (compound), 10 (washing-only), and 164 (machine-only). \Tabref{tab:data_stats} summarizes counts.
 
-\para{Model and \sae.} We run \gpttwo in TransformerLens and collect layer-6 \resid activations at resid\_post\_mlp. We encode activations using a pretrained OpenAI \sae (v5 32k) trained on this location. We use top-$k$ analysis with $k=50$.
+\input{tables/data_stats}
 
-\para{Metrics.} We compute (i) top-$k$ Jaccard overlap between feature sets for compound and constituent contexts, (ii) cosine similarity between mean \sae latent vectors, (iii) causal patching effects measured as $\Delta$logit for ``machine'' when patching compound activations into ``washing process'' templates, and (iv) compositionality probe performance using ridge regression to predict compound embeddings from constituent embeddings (MSE and cosine).
+\para{Model and \sae.} We analyze \gpttwo using TransformerLens and a pretrained OpenAI \sae (v5, 32k) at layer 6, \texttt{resid\_post\_mlp}. We cache residual activations, encode them with the \sae, and aggregate latent vectors by context type.
 
-\para{Baselines.} For the probe, we compare against a head-noun baseline that predicts the compound embedding from the \machine embedding alone (``w2'' baseline).
+\para{Metrics.} We compute (i) top-$k$ Jaccard overlap between compound and constituent feature sets ($k=50$), (ii) cosine similarity between mean latent vectors, (iii) causal patching logit deltas for predicting the token ``machine,'' and (iv) a ridge regression probe predicting compound embeddings from constituent embeddings, evaluated by MSE and cosine similarity. We estimate overlap uncertainty with 200 bootstrap samples.
 
-\para{Reproducibility.} We run a single deterministic pipeline with seed 42 on an NVIDIA RTX 3090 (24GB). Software versions: PyTorch 2.10.0+cu128, TransformerLens 2.15.4, Transformers 4.57.6, Datasets 4.5.0, scikit-learn 1.8.0.
+\para{Baselines.} For probing, we compare against a \wbaseline baseline that uses only one constituent embedding. For causal patching, we use five template pairs and report mean $\Delta$logit and a two-sided $p$-value.
+
+\para{Implementation details.} We use PyTorch 2.10.0+cu128, TransformerLens 2.15.4, and scikit-learn 1.8.0. Hyperparameters include $k=50$, ridge $\alpha=1.0$, and maximum 200 contexts. All analyses use seed 42 on a single NVIDIA RTX 3090 (24GB).

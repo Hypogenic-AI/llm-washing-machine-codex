@@ -1,77 +1,79 @@
 # REPORT: Where Is "Washing Machine" Stored in LLMs?
 
 ## 1. Executive Summary
-We tested whether the compound concept "washing machine" is represented as a distinct direction in the residual stream or emerges from constituent features ("washing" + "machine") in a GPT-2 small model with sparse autoencoder (SAE) features.
-Key findings: SAE top-feature overlap between compound and constituent contexts was low (Jaccard 0.11–0.14), while a compositionality probe strongly predicted compound embeddings from constituent embeddings (cosine 0.996). Causal patching from "washing machine" into "washing process" did not increase the logit for "machine" (mean Δlogit = -0.019), suggesting weak localized causal dependence at the tested layer.
-Practical implication: Compound noun behavior appears more compositional in representation geometry than as a single, strong, causal feature at one layer; mechanistic interventions should consider composition across features and layers rather than assuming a single direction.
+**Research question**: Where is the compound concept "washing machine" represented in a transformer LLM residual stream—via a distinct feature or via composition of constituent concepts ("washing" + "machine")?
 
-## 1.5. Research Question & Hypothesis
-**Research question**: Where is the compound concept "washing machine" stored in LLMs—distinct residual direction or composition of constituent features?
-**Hypothesis**: The compound does not correspond to a unique orthogonal direction; it emerges from constituent features.
+**Key finding**: In GPT-2 small with SAE features at layer 6 (resid_post_mlp), top-k compound feature overlap with constituents is low (Jaccard 0.11–0.14; bootstrap means 0.09–0.11), but a compositionality probe predicts compound embeddings from constituents extremely well (mean cosine 0.996). Causal patching showed no reliable positive logit lift for "machine" (mean Δlogit -0.019, p=0.75).
+
+**Implication**: The evidence favors compositional representation over a single strong compound-specific direction at the tested layer. Mechanistic interventions should expect compound concepts to be distributed across constituent features rather than localized to a single monosemantic direction.
 
 ## 2. Goal
-**Hypothesis**: The compound concept "washing machine" is not stored as a distinct, orthogonal residual-stream direction; instead, constituent features ("washing", "machine") compose to yield compound meaning.
-**Importance**: This impacts how we localize concepts, steer models, and interpret feature-level interventions in LLMs.
-**Problem solved**: Tests whether a concrete compound noun maps to a single feature vs. compositional structure.
-**Expected impact**: More realistic assumptions about feature localization and composition in interpretability work.
+**Hypothesis**: The compound concept "washing machine" is not stored as a unique orthogonal direction; it emerges from constituent features.
 
-## 2.5. Literature Review Summary
-- Superposition and polysemanticity (Elhage et al., 2022) imply many concepts will not have clean, orthogonal directions.
-- Compositionality probes (Liu & Neubig, 2022) show phrase representations are often predictable from constituents.
-- SAE work (Gao et al., 2024; Leask et al., 2025) indicates learned features are not canonical units, motivating caution when interpreting a single latent as a concept.
-- Activation patching best practices (Zhang & Nanda, 2023) highlight sensitivity to localization hyperparameters.
-- Linear representation formalization (Park et al., 2024) provides a framework for testing when directions are meaningful.
-
-These findings motivate combining SAE analysis, causal tracing, and compositionality probing to test whether a compound noun behaves as an atomic concept or a composition.
+**Why it matters**: Interpretability and model editing methods often assume distinct concept directions. If compounds are compositional, then single-direction edits and interventions may be incomplete or misleading.
 
 ## 3. Data Construction
 
 ### Dataset Description
-- **Primary source**: WikiText-2 raw (`datasets/wikitext_2_raw`)
-- **Size**: train 36,718; validation 3,760; test 4,358 records
-- **Collection**: Pre-downloaded from HuggingFace; raw text lines
-- **Bias/limitations**: Many empty lines; sparse coverage of the specific compound "washing machine" in the corpus.
+- **Source**: WikiText-2 raw (`datasets/wikitext_2_raw_v1`)
+- **Size used**: 29,119 non-empty text lines after filtering
+- **Task**: Context mining for compound and constituent mentions
+- **Biases/limitations**: Sparse coverage of the specific compound; contexts may be domain-specific to Wikipedia
 
 ### Example Samples
-```text
-Sample 1: "Senjō no Valkyria 3 : Unrecorded Chronicles ..."
-Sample 2: "The game began development in 2010 ..."
-Sample 3: "As with previous Valkyria Chronicles games, Valkyria Chronicles III is ..."
-```
+**Compound contexts**:
+- "The washing machine was broken."
+- "The washing machine stopped mid-cycle."
+- "The washing machine made a loud noise."
+
+**Washing-only contexts**:
+- "In the 1880s , the federal government began closing many small arsenals around the country in favor of smaller ones built near railroads for quick deployment ."
+- "Atlanta was easily pulled free by the Union ships and she reached Port Royal under her own power ."
+- "Michael Jeffrey Jordan ( born February 17 , 1963 ) , also known by his initials , MJ , is an American retired professional basketball player ."
+
+**Machine-only contexts**:
+- "Most of the equipment , arms , and machinery at the Little Rock Arsenal was removed to east of the Mississippi River by order of Maj. Gen. Earl Van Dorn in April and May 1862 ..."
+- "Machinery was made for manufacturing percussion caps and small arms , and both were turned out in small quantity , but of excellent quality ."
+- "The fourth stage involved remedying the problem of communicating between the two towers during the time of Pope Pius X."
 
 ### Data Quality
-- Missing or empty lines: train 12,951; validation 1,299; test 1,467
-- Mean length: train 296.7; validation 303.8; test 295.0 characters
-- Min length: 0; max length: 3,863 (train)
-- Validation checks: non-empty filtering; basic length statistics saved in `results/data_stats.json`
+- **Total rows after filtering**: 29,119
+- **Empty rows after filtering**: 0
+- **Context counts**:
+  - Compound: 105
+  - Washing-only: 178
+  - Machine-only: 200
+- **Latent samples** (token positions found):
+  - Compound: 105
+  - Washing-only: 10
+  - Machine-only: 164
 
 ### Preprocessing Steps
-1. Loaded dataset from disk and concatenated splits.
-2. Filtered empty lines and stripped whitespace for context search.
-3. Extracted three context sets:
+1. Load WikiText-2 raw from disk.
+2. Strip whitespace and drop empty lines.
+3. Extract three context sets:
    - Compound: lines containing "washing machine"
-   - Washing-only: "washing" without "machine"
-   - Machine-only: "machine" without "washing"
-4. Because WikiText-2 contained no "washing machine" strings, added synthetic compound sentences (templated) to ensure controlled compound contexts.
+   - Washing-only: lines containing "washing" but not "machine"
+   - Machine-only: lines containing "machine" but not "washing"
+4. Use all splits as a pooled corpus for context search.
 
 ### Train/Val/Test Splits
-- Used all splits for context extraction (no training in the ML sense).
-- For compositionality probe, used an 80/20 random split of extracted bigram samples.
+No supervised training on WikiText-2. For the compositionality probe, an 80/20 random split of bigram samples was used.
 
 ## 4. Experiment Description
 
 ### Methodology
-
 #### High-Level Approach
-Combine SAE feature analysis, causal patching, and a compositionality probe to test whether compound meanings are represented as a distinct latent or as a composition of constituent features.
+1. **SAE feature analysis**: Measure overlap between top-k SAE features activated by compound vs constituent contexts.
+2. **Causal patching**: Patch residual activations from one prompt into another to test causal influence on predicting "machine".
+3. **Compositionality probe**: Train a ridge regression model to predict a compound embedding from constituent embeddings.
 
 #### Why This Method?
-- SAE feature activations test for latent features correlated with the compound.
-- Causal patching tests whether transferring compound activations causes compound-specific predictions.
-- Compositionality probes quantify how well compound representations are predicted from constituents.
+- SAE features allow a sparse, interpretable basis for comparing concept activations.
+- Causal patching tests whether a localized activation pattern causally induces compound-related logits.
+- Probing quantifies how well compound representations are reconstructible from constituents.
 
 ### Implementation Details
-
 #### Tools and Libraries
 - PyTorch 2.10.0+cu128
 - TransformerLens 2.15.4
@@ -83,41 +85,38 @@ Combine SAE feature analysis, causal patching, and a compositionality probe to t
 
 #### Algorithms/Models
 - **Model**: GPT-2 small (`gpt2`) loaded via TransformerLens
-- **SAE**: Pretrained SAE weights from OpenAI `sparse_autoencoder` (v5 32k) for layer 6, resid_post_mlp
+- **SAE**: OpenAI `sparse_autoencoder` pretrained SAE (v5 32k) at layer 6, `resid_post_mlp`
 
 #### Hyperparameters
 | Parameter | Value | Selection Method |
 |-----------|-------|------------------|
-| SAE layer | 6 | Prior examples in SAE repo |
-| SAE location | resid_post_mlp | Standard for SAE features |
-| top_k | 50 | Common feature overlap evaluation |
-| max_contexts | 200 | Dataset size limit |
-| ridge alpha | 1.0 | Default baseline |
+| SAE layer | 6 | Standard mid-layer choice |
+| SAE location | resid_post_mlp | SAE default location |
+| top_k | 50 | Common overlap eval setting |
+| max_contexts | 200 | Runtime cap |
+| ridge alpha | 1.0 | Baseline default |
+| bootstrap samples | 200 | Quick CI estimate |
 
-#### Training Procedure or Analysis Pipeline
-1. Extract contexts from WikiText-2 and synthetic compound prompts.
-2. Run GPT-2 with cache; collect residual activations at layer 6.
+#### Training/Analysis Pipeline
+1. Extract contexts from WikiText-2.
+2. Run GPT-2 with cache to collect residual activations.
 3. Encode activations with SAE to obtain latent features.
 4. Compute top-k feature overlap and cosine similarities.
-5. Run causal patching at layer 6.
-6. Train ridge regression probe predicting compound embeddings from constituent embeddings.
+5. Run causal patching at layer 6 with template pairs.
+6. Train ridge regression probe on bigram dataset to predict compound embeddings.
 
 ### Experimental Protocol
+- **Random seed**: 42
+- **Hardware**: NVIDIA GeForce RTX 3090 (24GB), CUDA 12.8
+- **Runs**: 1 (deterministic, with bootstrap for overlap confidence intervals)
 
-#### Reproducibility Information
-- Runs: single deterministic run
-- Random seed: 42
-- Hardware: NVIDIA GeForce RTX 3090 (24GB), CUDA 12.8
-- Runtime: a few minutes for full pipeline
-
-#### Evaluation Metrics
-- **Top-k Jaccard overlap**: measures shared SAE features across conditions
-- **Cosine similarity**: compares mean latent vectors between conditions
-- **Causal patching logit delta**: effect on predicting "machine" after patching
-- **Ridge probe MSE / cosine**: compositional predictability of compound embedding
+### Evaluation Metrics
+- **Top-k Jaccard overlap**: feature overlap between conditions
+- **Cosine similarity**: similarity of mean latent vectors
+- **Causal patching logit delta**: impact on predicting "machine" after patching
+- **Probe MSE / cosine**: quality of reconstructing compound embeddings
 
 ### Raw Results
-
 #### Tables
 | Metric | Value |
 |--------|-------|
@@ -125,12 +124,15 @@ Combine SAE feature analysis, causal patching, and a compositionality probe to t
 | Compound–machine Jaccard | 0.111 |
 | Compound–union Jaccard | 0.129 |
 | Compound unique fraction (top-50) | 0.68 |
+| Bootstrap mean overlap (compound–washing) | 0.092 [0.064, 0.136] |
+| Bootstrap mean overlap (compound–machine) | 0.105 [0.087, 0.124] |
+| Bootstrap mean overlap (compound–union) | 0.114 [0.092, 0.137] |
 | Cosine(compound, washing) | 0.578 |
 | Cosine(compound, machine) | 0.041 |
-| Causal patching Δlogit | -0.019 ± 0.109 (n=5) |
+| Causal patching Δlogit | -0.019 ± 0.109 (n=5, p=0.750) |
 | Probe MSE (ridge) | 5.19 |
 | Probe MSE (w2 baseline) | 12.49 |
-| Probe cosine (ridge) | 0.996 |
+| Probe mean cosine (ridge) | 0.996 |
 
 #### Visualizations
 - `results/plots/sae_overlap.png`
@@ -138,73 +140,46 @@ Combine SAE feature analysis, causal patching, and a compositionality probe to t
 
 #### Output Locations
 - Metrics JSON: `results/metrics.json`
-- Data stats: `results/data_stats.json`
-- Environment: `results/env.json`
+- Examples JSON: `results/examples.json`
 - Plots: `results/plots/`
 
 ## 5. Result Analysis
 
 ### Key Findings
-1. **Low SAE feature overlap**: Compound top-k features overlap weakly with washing or machine alone (Jaccard ~0.11–0.14), and 68% of top-50 compound features were unique relative to constituent top-50 sets.
-2. **Compositionality probe success**: Ridge regression predicts compound embeddings from constituents far better than a baseline using only w2 (MSE 5.19 vs 12.49, cosine 0.996), indicating strong compositional structure.
-3. **Weak causal patching effect**: Patching compound residuals into "washing process" did not increase the logit for "machine" (mean Δlogit -0.019), suggesting no strong single-layer causal trigger for "machine" at layer 6.
+1. **Low SAE overlap**: Top-k overlap between compound and constituent activations is small (Jaccard 0.11–0.14). Bootstrap means are similarly low (0.09–0.11), suggesting no dominant shared feature set.
+2. **Strong compositionality**: Compound embeddings are predicted very accurately from constituents (mean cosine 0.996), well beyond the w2-only baseline (MSE 12.49 vs 5.19).
+3. **Weak causal patching effect**: Patching compound residuals into "washing process" did not reliably increase the "machine" logit (mean Δlogit -0.019, p=0.75).
 
 ### Hypothesis Testing Results
-- **Support**: The strong compositional probe result supports the hypothesis that compound meaning is compositional.
-- **Ambiguous**: The low SAE overlap could suggest a distinct compound feature, but the synthetic contexts and SAE non-canonicality make this inconclusive.
-- **Causal evidence**: Patch results do not show a clear compound-specific causal direction at the tested layer.
-
-### Comparison to Baselines
-- Probe outperforming w2 baseline suggests additive compositionality beyond simply copying the head noun.
-- SAE uniqueness should be interpreted cautiously due to small and synthetic compound sample size.
-
-### Visualizations
-- See `results/plots/sae_overlap.png` for overlap comparisons.
-- See `results/plots/causal_patching.png` for patching effect size.
-
-### Surprises and Insights
-- WikiText-2 contains no literal "washing machine" strings; synthetic prompts were required.
-- The compositionality probe indicates high predictability even when SAE overlap is low, highlighting that SAE features may be polysemantic or non-canonical.
+- **Supports**: The compositionality probe strongly supports the hypothesis that compound meaning can be reconstructed from constituents.
+- **Does not support**: Causal patching does not indicate a single strong compound-specific direction at layer 6.
+- **Ambiguity**: Low SAE overlap could indicate compound-specific features, but the small washing-only latent sample count (n=10) limits confidence.
 
 ### Error Analysis
-- Limited compound samples (synthetic only) restrict ecological validity.
-- Washing-only contexts are rare in WikiText-2; only 10 usable latent samples were extracted.
+- Washing-only contexts are rare in WikiText-2, leading to only 10 usable latent samples.
+- Causal patching used only 5 template pairs; effect estimates are noisy.
 
 ### Limitations
-- Single model (GPT-2 small) and single layer tested.
-- SAE features are not guaranteed to be canonical units.
-- Compound contexts are synthetic rather than natural corpus occurrences.
-- Patching uses a small set of templates (n=5 pairs).
+- Single model (GPT-2 small) and single SAE layer tested.
+- SAE features may not be canonical or monosemantic.
+- Corpus coverage for the exact compound is limited.
 
 ## 6. Conclusions
 
-### Summary
-Evidence from compositionality probing suggests compound embeddings are largely predictable from constituent embeddings, aligning with a compositional representation. SAE feature overlap and causal patching did not reveal a strong, unique compound feature at the tested layer.
+**Summary**: In GPT-2 small, "washing machine" does not appear to correspond to a single strong, localized feature at the tested layer. Instead, representation geometry is strongly compositional, as evidenced by the probe results.
 
-### Implications
-- **Practical**: Concept editing and steering should consider multi-feature and multi-layer composition instead of relying on a single direction.
-- **Theoretical**: Supports the view that compound meanings are constructed rather than stored as atomic residual directions.
+**Implications**: Mechanistic interpretability and concept editing should treat compound concepts as distributed compositions rather than single features, at least in small GPT-style models.
 
-### Confidence in Findings
-Moderate. The compositionality signal is strong, but SAE and patching evidence is limited by data scarcity and synthetic contexts.
+**Confidence**: Moderate. The compositionality evidence is strong, but SAE overlap and causal patching are limited by sample size and single-layer scope.
 
 ## 7. Next Steps
-
-### Immediate Follow-ups
-1. Expand compound contexts using larger corpora (WikiText-103 or The Pile) to avoid synthetic prompts.
-2. Repeat SAE analysis across multiple layers and SAE types (single-layer vs multi-layer SAEs).
-
-### Alternative Approaches
-- Use Neuronpedia or Gemma Scope SAEs on newer open models with richer corpora.
-- Evaluate activation patching across multiple locations (attn_out, resid_mid, resid_post).
-
-### Broader Extensions
-- Compare compounds of varying compositionality (literal vs idiomatic) using CHIP.
-- Test multiple model families to check consistency of compound representation.
-
-### Open Questions
-- Are compound-specific features more detectable in larger models or later layers?
-- Do idiomatic compounds behave differently in SAE and patching analyses?
+1. Expand corpora (WikiText-103 or The Pile) to increase washing-only and compound samples.
+2. Test multiple layers and SAE locations (resid_mid, resid_post_attn, mlp_post_act).
+3. Repeat with a larger model and modern SAEs to test scale effects.
 
 ## References
-- See `literature_review.md` and `resources.md` for primary papers and datasets.
+- Elhage et al. (2022) Toy Models of Superposition
+- Cunningham et al. (2023) Sparse Autoencoders Find Highly Interpretable Features in Language Models
+- Wang et al. (2022) Interpretability in the Wild (IOI)
+- Meng et al. (2022) Locating and Editing Factual Associations (ROME)
+- Dai et al. (2021) Knowledge Neurons

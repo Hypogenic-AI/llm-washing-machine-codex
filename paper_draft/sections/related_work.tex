@@ -1,12 +1,10 @@
-\section{Related Work}
-\label{sec:related_work}
+\section{Related Work}\label{sec:related_work}
+\para{Superposition and feature geometry.} Toy models explain why models encode many features in superposition, leading to polysemantic directions under capacity constraints \cite{elhage2022superposition}. This perspective motivates sparse bases such as \sae features for probing compound concepts.
 
-\para{Superposition and linear concept geometry.} Superposition analyses argue that many concepts are encoded in overlapping directions rather than clean axes \cite{elhage2022superposition}. The linear representation hypothesis formalizes when a concept can be treated as a direction under specific inner products \cite{park2024linear}. Our work tests this tension on a concrete compound noun and asks whether a distinct direction is detectable in practice.
+\para{Sparse feature discovery.} \sae and dictionary-learning methods recover interpretable features from transformer activations \cite{cunningham2023sparse,anthropic2023monosemanticity}. These methods suggest a natural lens for testing whether ``washing machine'' yields a distinct sparse feature or overlaps with constituent features.
 
-\para{Compositionality of phrase representations.} Probing studies show that phrase embeddings are often predictable from constituent embeddings, suggesting local compositional structure \cite{liu2022groundup}. We extend this idea to compound nouns and connect it to feature-level localization evidence.
+\para{Causal localization and editing.} Activation patching and causal tracing identify components responsible for specific behaviors, as in IOI circuits \cite{wang2022ioi} and factual association editing via \textsc{ROME} \cite{meng2022rome}. We adapt this style of causal intervention to test whether compound-related activations causally lift the ``machine'' logit.
 
-\para{Sparse autoencoders and feature non-canonicality.} Large \sae models recover many interpretable features \cite{gao2024sae}, but later work shows that \sae latents are not canonical and can be decomposed further \cite{leask2025sae}. Automated interpretability metrics can also fail to separate trained from random transformers \cite{heap2025metrics}. These findings motivate caution when interpreting a single latent as an atomic concept.
+\para{Neuron-level attribution.} Knowledge Neurons identifies sets of units that mediate factual predictions \cite{dai2021knowledgeneurons}. Our work sits between neuron-level attribution and sparse feature discovery by using \sae features as the unit of analysis.
 
-\para{Causal tracing and patching.} Activation patching is sensitive to corruption and localization choices, and best practices emphasize careful controls \cite{zhang2023patching}. We use a conservative patching setup and report effect sizes with uncertainty.
-
-\para{Cross-layer and multi-layer features.} Multi-layer \sae approaches highlight that features can distribute across depth rather than reside at one layer \cite{lawson2025mlsae}. This provides context for our single-layer study and motivates multi-layer follow-ups.
+\para{Positioning.} Unlike prior work that studies either sparse features or causal effects in isolation, we combine sparse overlap, causal patching, and compositionality probes on a concrete compound noun, allowing us to directly contrast feature localization with compositional representation.

@@ -4,66 +4,70 @@
 This document catalogs all resources gathered for the research project, including papers, datasets, and code repositories.
 
 ## Papers
-Total papers downloaded: 9
+Total papers downloaded: 5
 
 | Title | Authors | Year | File | Key Info |
 |-------|---------|------|------|----------|
-| Toy Models of Superposition | Elhage et al. | 2022 | papers/2209.10652_toy_models_of_superposition.pdf | Superposition/polysemanticity toy models |
-| Are Representations Built from the Ground Up? | Liu, Neubig | 2022 | papers/2210.03575_are_representations_built_from_the_ground_up.pdf | Local compositionality probes |
-| Towards Best Practices of Activation Patching | Zhang, Nanda | 2023 | papers/2309.16042_best_practices_activation_patching.pdf | Causal tracing methodology |
-| The Linear Representation Hypothesis and the Geometry of LLMs | Park et al. | 2024 | papers/2311.03658_linear_representation_hypothesis.pdf | Formalizes linear concept directions |
-| Scaling and Evaluating Sparse Autoencoders | Gao et al. | 2024 | papers/2406.04093_scaling_and_evaluating_sparse_autoencoders.pdf | Large-scale SAE training & metrics |
-| Gemma Scope | Lieberum et al. | 2024 | papers/2408.05147_gemma_scope.pdf | Open SAEs across Gemma 2 layers |
-| Residual Stream Analysis with Multi-Layer SAEs | Lawson et al. | 2025 | papers/2409.04185_residual_stream_analysis_with_multi_layer_saes.pdf | MLSAE for cross-layer features |
-| Automated Interpretability Metrics... | Heap et al. | 2025 | papers/2501.17727_automated_interpretability_metrics_do_not_distinguish_trained_and_random_transformers.pdf | SAE metrics sanity checks |
-| Sparse Autoencoders Do Not Find Canonical Units | Leask et al. | 2025 | papers/2502.04878_sparse_autoencoders_do_not_find_canonical_units.pdf | SAE non-atomicity |
+| Toy Models of Superposition | Elhage et al. | 2022 | papers/2209.10652_toy_models_of_superposition.pdf | Theory of superposition/polysemanticity |
+| Sparse Autoencoders Find Highly Interpretable Features in Language Models | Cunningham et al. | 2023 | papers/2309.08600_sparse_autoencoders_interpretable_features.pdf | SAEs find sparse, interpretable features |
+| Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small | Wang et al. | 2022 | papers/2211.00593_interpretability_in_the_wild.pdf | Causal circuit analysis (IOI) |
+| Locating and Editing Factual Associations in GPT (ROME) | Meng et al. | 2022 | papers/2202.05262_locating_and_editing_factual_associations.pdf | Causal tracing + model editing |
+| Knowledge Neurons in Pretrained Transformers | Dai et al. | 2021 | papers/2104.08696_knowledge_neurons.pdf | Neuron attribution for facts |
 
-See papers/README.md for detailed descriptions.
+See `papers/README.md` for detailed descriptions.
 
 ## Datasets
-Total datasets downloaded: 1
+Total datasets downloaded: 2
 
 | Name | Source | Size | Task | Location | Notes |
 |------|--------|------|------|----------|-------|
-| WikiText-2 (raw) | HuggingFace | 7.8MB | LM corpus | datasets/wikitext_2_raw/ | Includes samples.json |
+| WikiText-2 (raw) | HuggingFace `wikitext` | 36,718 train | Language modeling | datasets/wikitext_2_raw_v1/ | Small, fast for activation sampling |
+| LAMBADA (1k subset) | HuggingFace `lambada` | 1,000 train samples | Long-context prediction | datasets/lambada_train_1k/ | Subset for quick tests |
 
-Additional documented (not downloaded): CHIP dataset from lm-compositionality repo.
-
-See datasets/README.md for detailed descriptions.
+See `datasets/README.md` for detailed descriptions.
 
 ## Code Repositories
-Total repositories cloned: 3
+Total repositories cloned: 4
 
 | Name | URL | Purpose | Location | Notes |
 |------|-----|---------|----------|-------|
-| sparse_autoencoder | github.com/openai/sparse_autoencoder | SAE training + pretrained models | code/openai_sparse_autoencoder/ | GPT-2 SAEs + viewer |
-| TransformerLens | github.com/neelnanda-io/TransformerLens | Mech interp toolkit | code/transformer_lens/ | Activation hooks, caching |
-| lm-compositionality | github.com/nightingal3/lm-compositionality | Compositionality probes + CHIP dataset | code/lm_compositionality/ | Dataset + scripts |
+| sparse_autoencoder | github.com/openai/sparse_autoencoder | Pretrained SAEs + visualizer | code/sparse_autoencoder/ | GPT-2 SAE features |
+| SAELens | github.com/decoderesearch/SAELens | SAE training/analysis toolkit | code/sae_lens/ | Tutorials + pretrained SAEs |
+| ROME | github.com/kmeng01/rome | Causal tracing + model editing | code/rome/ | Includes CounterFact tooling |
+| knowledge-neurons | github.com/Hunter-DDM/knowledge-neurons | Neuron attribution scripts | code/knowledge_neurons/ | Reproduces ACL 2022 work |
 
-See code/README.md for detailed descriptions.
+See `code/README.md` for detailed descriptions.
 
 ## Resource Gathering Notes
 
 ### Search Strategy
-- Keyword-driven search on mechanistic interpretability, superposition, SAEs, and compositionality.
-- Focused on recent (2022–2025) arXiv/ICLR/ICML papers with tool releases.
-- Selected papers specifically tied to concept directions, SAE feature extraction, and compositionality.
+- Manual search on arXiv and Semantic Scholar for superposition, sparse autoencoders, and mechanistic interpretability papers.
+- Transformer Circuits reports for dictionary learning and mechanistic frameworks.
+- HuggingFace dataset cards for corpora used in activation sampling.
+- GitHub for official implementations and tooling.
 
 ### Selection Criteria
-- Direct relevance to concept representation and compound concepts.
-- Availability of code/weights/datasets for reproducibility.
-- Mix of foundational theory (superposition, linear representation) and practical tooling (SAEs).
+- Direct relevance to feature localization, superposition, or causal tracing.
+- Methods enabling activation-level interventions.
+- Availability of code and datasets for reproducibility.
 
 ### Challenges Encountered
-- Paper-finder service appeared unavailable; manual search was required.
-- Some interpretability resources are web-only (no PDF), so not all sources are downloadable PDFs.
+- Paper-finder service did not respond (timed out), so manual search was used.
+- Some arXiv pages prompted access challenges; metadata was gathered from alternative sources.
+- OpenWebText is large; a smaller dataset was chosen instead.
 
 ### Gaps and Workarounds
-- Limited public datasets explicitly labeled for compound-noun concept representation; using CHIP and WikiText as practical proxies.
+- No dedicated dataset for “washing machine” compositionality; use corpus sampling + synthetic prompts.
+- CounterFact dataset not downloaded; instructions provided via ROME tooling.
 
 ## Recommendations for Experiment Design
 
-1. **Primary dataset(s)**: CHIP (for compositionality judgments) + WikiText-2 (for activation streams).
-2. **Baseline methods**: Linear probes for component words, single-layer SAE vs. MLSAE, random model baseline.
-3. **Evaluation metrics**: Reconstruction loss + sparsity for SAEs, causal patching effect sizes, compositionality prediction accuracy.
-4. **Code to adapt/reuse**: `TransformerLens` for hooks/patching; `openai_sparse_autoencoder` for SAE workflow; `lm-compositionality` for compositionality probes.
+1. **Primary dataset(s)**: WikiText-2 for quick probing; LAMBADA for long-context effects.
+2. **Baseline methods**: SAE feature discovery (openai/sparse_autoencoder), neuron attribution (knowledge-neurons), causal tracing (ROME).
+3. **Evaluation metrics**: Feature sparsity, causal effect size under patching, separation of atomic vs. composite prompts.
+4. **Code to adapt/reuse**: SAELens for training/analysis, ROME for causal tracing, sparse_autoencoder for pretrained features.
+
+## Research Execution Notes (2026-02-07)
+- Executed experiments via `src/run_experiments.py` on GPT-2 small with SAE features at layer 6 (`resid_post_mlp`).
+- Outputs saved to `results/metrics.json`, `results/examples.json`, and `results/plots/`.
+- Hardware used: NVIDIA GeForce RTX 3090 (CUDA 12.8). See `results/metrics.json` for full environment details.

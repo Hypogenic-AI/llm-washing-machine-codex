@@ -6,11 +6,29 @@
     "sae_location": "resid_post_mlp",
     "top_k": 50,
     "max_contexts": 200,
+    "bootstrap_samples": 200,
     "device": "cuda",
     "results_dir": "results",
     "plots_dir": "results/plots"
   },
-  "timestamp": "2026-02-07T18:55:14.618119",
+  "timestamp": "2026-02-07T21:58:02.562281",
+  "environment": {
+    "python_version": "3.12.2 | packaged by Anaconda, Inc. | (main, Feb 27 2024, 17:35:02) [GCC 11.2.0]",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "torch_version": "2.10.0+cu128",
+    "cuda_available": "True",
+    "cuda_version": "12.8",
+    "transformer_lens_version": "2.15.4",
+    "numpy_version": "2.4.2",
+    "pandas_version": "3.0.0",
+    "gpu_name": "NVIDIA GeForce RTX 3090",
+    "gpu_count": "2",
+    "gpu_memory_gb": "25.34"
+  },
+  "data_quality": {
+    "total_rows": 29119,
+    "empty_rows": 0
+  },
   "counts": {
     "compound_contexts": 105,
     "washing_only_contexts": 178,
@@ -23,7 +41,24 @@
     "compound_washing_jaccard": 0.13636363636363635,
     "compound_machine_jaccard": 0.1111111111111111,
     "compound_union_jaccard": 0.12903225806451613,
-    "compound_unique_fraction": 0.68
+    "compound_unique_fraction": 0.68,
+    "bootstrap": {
+      "compound_washing_mean": 0.09249479595118071,
+      "compound_machine_mean": 0.10541710083781883,
+      "compound_union_mean": 0.11367099030214874,
+      "compound_washing_ci": [
+        0.06382978723404255,
+        0.13636363636363635
+      ],
+      "compound_machine_ci": [
+        0.08695652173913043,
+        0.12359550561797752
+      ],
+      "compound_union_ci": [
+        0.09229007633587787,
+        0.1371246393915552
+      ]
+    }
   },
   "cosine": {
     "compound_washing": 0.5775308012962341,
@@ -32,7 +67,16 @@
   "causal_patching": {
     "mean_logit_delta": -0.018598461151123048,
     "std_logit_delta": 0.1088594622533925,
-    "n": 5
+    "n": 5,
+    "t_stat": -0.3416967301901851,
+    "p_value": 0.7497758447992998,
+    "deltas": [
+      -0.10381221771240234,
+      0.14596271514892578,
+      -0.16180133819580078,
+      -0.021053314208984375,
+      0.047711849212646484
+    ]
   },
   "compositionality_probe": {
     "ridge_mse": 5.190074443817139,

@@ -1,30 +1,40 @@
 # Cloned Repositories
 
-## Repo 1: openai/sparse_autoencoder
-- URL: github.com/openai/sparse_autoencoder
-- Purpose: Trained sparse autoencoders on GPT-2 activations + viewer.
-- Location: `code/openai_sparse_autoencoder/`
+## Repo 1: sparse_autoencoder
+- URL: https://github.com/openai/sparse_autoencoder
+- Purpose: Sparse autoencoders trained on GPT-2-small activations; feature visualization and SAE weights
+- Location: code/sparse_autoencoder/
 - Key files:
-  - `sparse_autoencoder/model.py` (SAE architecture)
-  - `sparse_autoencoder/train.py` (training)
-  - `sae-viewer/` (visualizer)
-- Notes: Provides pretrained SAEs and example code for activation encoding/decoding.
+  - sparse_autoencoder/model.py
+  - sparse_autoencoder/train.py
+  - sparse_autoencoder/paths.py
+  - sae-viewer/README.md
+- Notes: Includes pretrained SAE weights and a web-based feature visualizer.
 
-## Repo 2: TransformerLens
-- URL: github.com/neelnanda-io/TransformerLens
-- Purpose: Mechanistic interpretability library for transformer models (activation caching, hooks).
-- Location: `code/transformer_lens/`
+## Repo 2: SAELens
+- URL: https://github.com/decoderesearch/SAELens
+- Purpose: Training and analysis library for sparse autoencoders with TransformerLens integration
+- Location: code/sae_lens/
 - Key files:
-  - `transformer_lens/` (core library)
-  - `demos/` (examples)
-- Notes: Standard toolkit for activation patching and probing LLM internals.
+  - tutorials/basic_loading_and_analysing.ipynb
+  - tutorials/training_a_sparse_autoencoder.ipynb
+- Notes: Supports pretrained SAEs and feature dashboards via SAE-Vis.
 
-## Repo 3: LM-Compositionality
-- URL: github.com/nightingal3/lm-compositionality
-- Purpose: Code and data utilities for compositionality experiments (Liu & Neubig, 2022).
-- Location: `code/lm_compositionality/`
+## Repo 3: ROME
+- URL: https://github.com/kmeng01/rome
+- Purpose: Rank-One Model Editing + Causal Tracing implementation and CounterFact evaluation
+- Location: code/rome/
 - Key files:
-  - `src/generate_data_treebank.py` (dataset generation)
-  - `src/models/` (composition probes)
-  - `data/qualtrics_results/chip_dataset.csv` (CHIP dataset)
-- Notes: Contains CHIP dataset and scripts for local composition probes.
+  - notebooks/rome.ipynb
+  - notebooks/causal_trace.ipynb
+  - experiments/evaluate.py
+- Notes: Useful for locating and testing knowledge storage via causal tracing.
+
+## Repo 4: knowledge-neurons
+- URL: https://github.com/Hunter-DDM/knowledge-neurons
+- Purpose: Reproduce "Knowledge Neurons in Pretrained Transformers" experiments
+- Location: code/knowledge_neurons/
+- Key files:
+  - src/
+  - scripts 1_run_mlm.sh ... 8_run_plot.sh
+- Notes: Provides attribution scoring and neuron identification scripts.

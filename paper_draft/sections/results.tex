@@ -1,24 +1,22 @@
-\section{Results}
-\label{sec:results}
-
-\para{SAE feature overlap is low.} \Tabref{tab:main_metrics} shows that compound--constituent top-50 Jaccard overlaps are 0.11--0.14, and 68\% of compound features are unique relative to constituent top-50 sets. \Figref{fig:sae_overlap} visualizes the overlap patterns, reinforcing the weak feature sharing signal.
-
-\para{Compositionality probe is strong.} The ridge probe predicts compound embeddings from constituents with cosine 0.996 and MSE 5.19, outperforming the head-noun (w2) baseline (MSE 12.49), a 58.4\% reduction. This indicates that compound representations are largely reconstructible from constituents despite low \sae overlap.
-
-\para{Causal patching shows weak effects.} Patching \compound activations into \washing process prompts at layer 6 does not increase the logit for ``machine'' (mean $\Delta$logit $-0.019 \pm 0.109$, $n=5$). \Figref{fig:causal_patching} shows the distribution of patching effects and their variability across templates.
+\section{Results}\label{sec:results}
+\para{Main metrics.} \Tabref{tab:main_results} reports overlap, cosine, causal patching, and probe metrics. Top-$k$ overlap between compound and constituent contexts is low (Jaccard 0.11--0.14), and bootstrap means remain between 0.09 and 0.11, indicating limited shared sparse features. In contrast, the compositionality probe reconstructs compound embeddings with mean cosine 0.996 and MSE 5.19, a large improvement over the \wbaseline baseline (MSE 12.49).
 
 \input{tables/metrics}
+
+\para{SAE overlap and patching plots.} \Figref{fig:sae_overlap} visualizes overlap distributions, while \Figref{fig:causal_patching} summarizes patching outcomes. Patching compound residuals into ``washing process'' contexts yields a mean $\Delta$logit of $-0.019$ with high variance ($\pm 0.109$) across five template pairs.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.95\linewidth]{figures/sae_overlap.png}
-    \caption{Top-$k$ \sae feature overlap between compound and constituent contexts. Overlaps are low, and compound-specific features dominate the top-50 set.}
+    \caption{SAE top-$k$ overlap between compound and constituent contexts. Overlap remains low across comparisons, consistent with weak shared sparse features.}
     \label{fig:sae_overlap}
 \end{figure}
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.95\linewidth]{figures/causal_patching.png}
-    \caption{Causal patching effects at layer 6. Patching compound activations into \washing process contexts yields no consistent increase in the ``machine'' logit and shows substantial variance across $n=5$ templates.}
+    \caption{Causal patching effects on the ``machine'' logit. The mean effect is near zero with high variance, indicating no reliable causal lift from the patched compound activations at layer 6.}
     \label{fig:causal_patching}
 \end{figure}
+
+\para{Statistical context.} The patching result is not significant ($p=0.75$) and uses $n=5$ template pairs, so we interpret it as weak evidence against a single dominant compound feature at this layer.

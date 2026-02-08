@@ -1,23 +1,27 @@
 \begin{table}[t]
-    \centering
-    \resizebox{0.95\textwidth}{!}{%
-    \begin{tabular}{@{}ll@{}}
-        \toprule
-        \textbf{Metric} & \textbf{Value} \\
-        \midrule
-        Compound--washing Jaccard (top-50) & 0.136 \\
-        Compound--machine Jaccard (top-50) & 0.111 \\
-        Compound--union Jaccard (top-50) & 0.129 \\
-        Compound unique fraction (top-50) & 0.68 \\
-        Cosine(compound, washing) & 0.578 \\
-        Cosine(compound, machine) & 0.041 \\
-        Causal patching $\Delta$logit & $-0.019$ {\scriptsize $\pm$ 0.109} \\
-        Probe MSE (ridge) & 5.19 \\
-        Probe MSE (w2 baseline) & 12.49 \\
-        Probe cosine (ridge) & 0.996 \\
-        \bottomrule
-    \end{tabular}
-    }
-    \caption{Main metrics for compound vs. constituent analysis. Causal patching reports mean $\pm$ standard deviation over $n=5$ template pairs. Lower MSE and higher cosine are better for the probe.}
-    \label{tab:main_metrics}
+\centering
+\caption{Main results for feature overlap, patching, and compositionality.
+Best values per metric are in \textbf{bold}.}
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{@{}lcl@{}}
+\toprule
+Metric & Value & Notes \\
+\midrule
+Compound--washing Jaccard & 0.136 & Top-$k$ overlap ($k=50$) \\
+Compound--machine Jaccard & 0.111 & Top-$k$ overlap ($k=50$) \\
+Compound--union Jaccard & 0.129 & Top-$k$ overlap ($k=50$) \\
+Compound unique fraction & 0.68 & Unique features in top-$k$ \\
+Bootstrap mean (compound--washing) & 0.092 [0.064, 0.136] & 200 samples \\
+Bootstrap mean (compound--machine) & 0.105 [0.087, 0.124] & 200 samples \\
+Bootstrap mean (compound--union) & 0.114 [0.092, 0.137] & 200 samples \\
+Cosine(compound, washing) & 0.578 & Mean latent vectors \\
+Cosine(compound, machine) & 0.041 & Mean latent vectors \\
+Causal patching $\Delta$logit & -0.019 $\pm$ 0.109 & $n=5$, $p=0.75$ \\
+Probe MSE (ridge) & \textbf{5.19} & Lower is better \\
+Probe MSE (\wbaseline baseline) & 12.49 & Lower is better \\
+Probe mean cosine (ridge) & \textbf{0.996} & Higher is better \\
+\bottomrule
+\end{tabular}%
+}
+\label{tab:main_results}
 \end{table}
